@@ -12,3 +12,5 @@ scipy
 tqdm
 joblib
 requests
+duckdb>=1.4,<2
+pytz>=2025.2

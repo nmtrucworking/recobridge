@@ -1,0 +1,2 @@
+[console_scripts]
+recobridge-preprocess = recobridge_ml.preprocess:main

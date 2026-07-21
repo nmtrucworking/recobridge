@@ -1,1 +1,6 @@
 apps/ml/venv/
+.venv/
+apps/ml/artifacts/
+apps/ml/*.duckdb
+__pycache__/
+*.py[cod]

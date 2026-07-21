@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recobridge-ml"
+version = "0.1.0"
+description = "RecoBridge data preprocessing and ML pipelines"
+requires-python = ">=3.12"
+dependencies = [
+  "duckdb>=1.4,<2",
+  "pytz>=2025.2",
+]
+
+[project.scripts]
+recobridge-preprocess = "recobridge_ml.preprocess:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["recobridge_ml*"]

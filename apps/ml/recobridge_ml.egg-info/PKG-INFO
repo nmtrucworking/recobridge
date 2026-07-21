@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: recobridge-ml
+Version: 0.1.0
+Summary: RecoBridge data preprocessing and ML pipelines
+Requires-Python: >=3.12
+Requires-Dist: duckdb<2,>=1.4
+Requires-Dist: pytz>=2025.2
