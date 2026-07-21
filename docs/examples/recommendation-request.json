@@ -1,0 +1,11 @@
+{
+  "user_id": "u_123",
+  "session_id": "s_456",
+  "context": {
+    "page_type": "product_detail",
+    "product_id": "sku_789",
+    "device_type": "desktop"
+  },
+  "top_k": 12,
+  "strategy": "hybrid"
+}

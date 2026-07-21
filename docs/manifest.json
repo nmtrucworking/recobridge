@@ -1,0 +1,219 @@
+{
+  "project": "RecoBridge",
+  "version": "1.0.0",
+  "generated_at": "2026-07-18",
+  "tracked_file_count": 42,
+  "note": "manifest.json is intentionally excluded from its own checksum list",
+  "files": [
+    {
+      "path": "00_GOVERNANCE/01_Document_Control.md",
+      "size": 2539,
+      "sha256": "af8246ec30fc7eca743bf3b00163ea6930c6908ac5f98b8c974515a42c8d0111"
+    },
+    {
+      "path": "00_GOVERNANCE/02_Assumptions_Decisions_Open_Questions.md",
+      "size": 4147,
+      "sha256": "bab98abc6afdbb0027b8a35c935495efb965a3a005bf9f239416ae189a2365f2"
+    },
+    {
+      "path": "00_GOVERNANCE/03_Requirement_Traceability_Matrix.md",
+      "size": 2672,
+      "sha256": "8fb210b446b4b3b1885a3c2d0ec70e8eb3122decc26f892ef41f665a6e4bc945"
+    },
+    {
+      "path": "01_BUSINESS/01_Project_Charter.md",
+      "size": 3351,
+      "sha256": "8943aa1dd671870aa4efcc5226b627cc8252e211c854d4e5dba2b6d26eaa8ad5"
+    },
+    {
+      "path": "01_BUSINESS/02_Business_Requirements.md",
+      "size": 3503,
+      "sha256": "2cc09f0466b16e3e654ab2d81a8a4e9f3b048930ead03cc1cdea41f5bef230f3"
+    },
+    {
+      "path": "01_BUSINESS/03_Stakeholders_and_Use_Cases.md",
+      "size": 3212,
+      "sha256": "d51f284c89cc8dd310c6fa12a73127a334130715a166a47742c167d938c3de45"
+    },
+    {
+      "path": "01_BUSINESS/04_Scope_KPI_Acceptance.md",
+      "size": 3231,
+      "sha256": "9e7f94418f7c546fc638c0385b98d3641b88f8fc569caad48936b8a53e3580fa"
+    },
+    {
+      "path": "02_DATA/01_Dataset_Selection_Synerise.md",
+      "size": 4144,
+      "sha256": "f81bb222229b1fe159d8191337105d24d4960414f3f54815d11ec1fbbb1d9f81"
+    },
+    {
+      "path": "02_DATA/02_Data_Dictionary_and_Mapping.md",
+      "size": 4039,
+      "sha256": "4d9ffa6422d41e609755620df62b66c6aa7ac582af8867affc9c429a05dc0900"
+    },
+    {
+      "path": "02_DATA/03_Data_Quality_Preprocessing.md",
+      "size": 3249,
+      "sha256": "2ed1540bc44d06e2aef24ba88ca3cd05e0d983805aea2ac4a4acd42c615e917b"
+    },
+    {
+      "path": "02_DATA/04_Labeling_Sampling_and_Split.md",
+      "size": 3108,
+      "sha256": "bcc037acdb83c36a23081968e7ce1ca88ed841ca93d7be73e3772e09e7a5c0c1"
+    },
+    {
+      "path": "02_DATA/05_Data_Governance_and_Privacy.md",
+      "size": 2848,
+      "sha256": "fdc505c0aadfd1b045e8f112861a577a63631912204a9a5846a556ff4ea99b89"
+    },
+    {
+      "path": "03_ARCHITECTURE/01_System_Architecture.md",
+      "size": 2741,
+      "sha256": "2139fb09c1d2a1a73336ea9d3a13cb4510979feef01076b9d1faf354cbbd9c35"
+    },
+    {
+      "path": "03_ARCHITECTURE/02_Data_Flow_and_Sequence_Diagrams.md",
+      "size": 3095,
+      "sha256": "ef37cd97f8df8e20e772dacc14fff06741781f2c2e6f773eed6305aa00a16eb8"
+    },
+    {
+      "path": "03_ARCHITECTURE/03_Integration_Design.md",
+      "size": 2754,
+      "sha256": "b4ec92bec0ee60ce0ea5591b4d1037fd1831097f44131c42dc0dae0972656332"
+    },
+    {
+      "path": "03_ARCHITECTURE/04_Resilience_Data_Integrity.md",
+      "size": 3646,
+      "sha256": "c8bab4af6b521488d9ac835d19ec14dd023951a1664e5ae0dd51d3a361739636"
+    },
+    {
+      "path": "03_ARCHITECTURE/05_Architecture_Decision_Records.md",
+      "size": 2555,
+      "sha256": "61b4b7fada05c451f167b1ee0b35ff077abde1595904b9a3fe2eb4e1978b2f9b"
+    },
+    {
+      "path": "04_ML/01_ML_Problem_and_Strategy.md",
+      "size": 2798,
+      "sha256": "775e9a7052d0c0cff77c97d760e5ee818443b193d1844bc417b43bc8b758d333"
+    },
+    {
+      "path": "04_ML/02_Feature_Engineering.md",
+      "size": 2820,
+      "sha256": "d6ad6879f41f063ebf2e52dcb7918ca725b52d4cdd2c07b045ea537696895ed7"
+    },
+    {
+      "path": "04_ML/03_Training_and_Evaluation.md",
+      "size": 2677,
+      "sha256": "ce3ef46b562dcff71fae05c05f6f3538a74f3be3639ffef6a5e52d59739979b5"
+    },
+    {
+      "path": "04_ML/04_Model_Serving_and_MLOps.md",
+      "size": 2261,
+      "sha256": "0b0eee3a863f46e8b8d2d84c21ca8e77ea6af89ac8630d45a98b6579a2f21b98"
+    },
+    {
+      "path": "05_API/01_API_Design.md",
+      "size": 2499,
+      "sha256": "81d751211b6151b7698af992fc13abb76970fa1eabb31009dd4cd0bab70741a5"
+    },
+    {
+      "path": "05_API/02_Error_Idempotency_Observability.md",
+      "size": 1995,
+      "sha256": "9d68ccdefbb6674c7fe421120bb0d08cfa1b41118855998b2e5a5de9a70cc865"
+    },
+    {
+      "path": "05_API/openapi.yaml",
+      "size": 9653,
+      "sha256": "6616bbf0197d939cc2114ddf9284f0d61684bf2b6080c351d1734f1a1426456f"
+    },
+    {
+      "path": "06_SECURITY/01_Security_Architecture.md",
+      "size": 2150,
+      "sha256": "4b159c5dd17adc3c786bece6b79b2f3a2be2e50ea0d6f30d28208e50565888a5"
+    },
+    {
+      "path": "06_SECURITY/02_Threat_Model.md",
+      "size": 1926,
+      "sha256": "7cd183120a6ab03599f749c68f9042aed50f7fbdfde0a90e29c240be588b2c69"
+    },
+    {
+      "path": "07_DELIVERY/01_Deployment_and_Operations.md",
+      "size": 1910,
+      "sha256": "779d28643a1e398e3f02a0844d891c21a5bfc15c51cd898c85390224cf3050df"
+    },
+    {
+      "path": "07_DELIVERY/02_Test_Strategy.md",
+      "size": 2578,
+      "sha256": "4f3b34752132131aaa80d55f04fff83fe6187296d5548283817054257ac8a00f"
+    },
+    {
+      "path": "07_DELIVERY/03_Project_Plan.md",
+      "size": 2082,
+      "sha256": "b49f2a77b5972701f0a5a4e9a82bd98cbb2e3d9fca582fe93fcf9c9fd8c7e103"
+    },
+    {
+      "path": "07_DELIVERY/04_Risk_Register.md",
+      "size": 2273,
+      "sha256": "e51ba0e77c82dafed7fbe37d5f8412ac6d615bcdebc73776d601cf615fada690"
+    },
+    {
+      "path": "07_DELIVERY/05_Demo_Runbook.md",
+      "size": 2626,
+      "sha256": "5823fdb518e89787ceb633e9c05a90f883bd871808b324dfa10697e962540f54"
+    },
+    {
+      "path": "07_DELIVERY/06_Presentation_Defense.md",
+      "size": 3388,
+      "sha256": "b12d231bf4af0a024d22fd0720a1ac1c95e96e14deb8cf6b32f7e950b22b6bc8"
+    },
+    {
+      "path": "08_APPENDICES/01_References.md",
+      "size": 2796,
+      "sha256": "e9851266d818ff55568a80711e06be67a317224d77c13afd4e3d5a88fe3e914f"
+    },
+    {
+      "path": "08_APPENDICES/02_Quality_Checklist.md",
+      "size": 2545,
+      "sha256": "85b5e27c88841636e9b65446f9af500292fc63728359003a3261fc01206fde15"
+    },
+    {
+      "path": "08_APPENDICES/03_Rubric_Coverage.md",
+      "size": 2352,
+      "sha256": "d9d6a122f5f619244be6a2283790a1e4140f477016b49412d3d8c449a70fcc89"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 1140,
+      "sha256": "a31d8f7a755e5b33cfa032c2f30f6ba133eeee1546c0cb0bd176b673a0cd49a8"
+    },
+    {
+      "path": "README.md",
+      "size": 6187,
+      "sha256": "dfeae06241b8cf84b7179eb8d4a9911ebe64cc3cfe760dccc6a45c8eef451390"
+    },
+    {
+      "path": "VALIDATION_REPORT.md",
+      "size": 1068,
+      "sha256": "e9ef3c71d8309c0fe41d4e8141f213bf6737015ce9be8b01f134e938e959a10d"
+    },
+    {
+      "path": "examples/docker-compose.reference.yml",
+      "size": 1217,
+      "sha256": "f898ca5bf985264fa2136aacf9dadd6bbfc08c1034db45677fd79dcc55584f82"
+    },
+    {
+      "path": "examples/event-schema.json",
+      "size": 739,
+      "sha256": "229c0e51079403518ff32c62576be7a051a7fcd103c9440e566936eb48af14bf"
+    },
+    {
+      "path": "examples/recommendation-request.json",
+      "size": 202,
+      "sha256": "f0e0135b11f9afe2e2b33ca19d4ffdf6e754f57adc6c854537956720a07f20d0"
+    },
+    {
+      "path": "examples/recommendation-response.json",
+      "size": 317,
+      "sha256": "862617810aeb2ed460df0087e01f44946347e81363ec312f49703b9491365c3a"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RecoBridge Feedback Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "session_id",
+    "product_id",
+    "event_type",
+    "occurred_at"
+  ],
+  "properties": {
+    "request_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "click",
+        "add_to_cart",
+        "remove_from_cart",
+        "purchase"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "request_id": "01JABCDEF0123456789",
+  "model_version": "xgb-2026-07-18.1",
+  "feature_version": "fv1",
+  "strategy_used": "hybrid",
+  "degraded": false,
+  "items": [
+    {
+      "product_id": "sku_10",
+      "score": 0.91,
+      "rank": 1,
+      "reason_code": "CLUSTER_AFFINITY"
+    }
+  ],
+  "latency_ms": 47
+}

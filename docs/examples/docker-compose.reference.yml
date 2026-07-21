@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: recobridge
+      POSTGRES_USER: recobridge
+      POSTGRES_PASSWORD: change-me
+    ports: ["5432:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recobridge -d recobridge"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  recommendation-api:
+    image: recobridge/recommendation-api:local
+    environment:
+      DATABASE_URL: postgresql://recobridge:change-me@postgres:5432/recobridge
+      REDIS_URL: redis://redis:6379/0
+      MODEL_PATH: /models/current
+    ports: ["8000:8000"]
+    volumes:
+      - ./model_bundle:/models/current:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
