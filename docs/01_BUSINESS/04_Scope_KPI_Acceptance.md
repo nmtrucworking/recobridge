@@ -17,9 +17,9 @@
 |---|---|
 | Sample Synerise có quy tắc | Toàn bộ dữ liệu 168M+ event |
 | K-Means segmentation | Deep sequential recommender |
-| XGBoost classifier/ranker | Online learning |
+| XGBRanker learning-to-rank | Online learning |
 | REST API + OpenAPI | gRPC production |
-| PostgreSQL + optional Redis | Kafka/Kubernetes |
+| PostgreSQL; in-memory read-only lookup | Redis/Kafka/Kubernetes |
 | Docker Compose | Multi-region |
 | Exposure/feedback logging mới | Historical exposure reconstruction |
 
@@ -42,7 +42,9 @@
 
 - So với `recent-popular`/`global-popular` baseline.
 - Metric chính đề xuất: `NDCG@10`; metric phụ: `Recall@10`, `MRR`, coverage, novelty/diversity.
-- Không đặt ngưỡng tăng tuyệt đối trước khi chạy baseline. Sau vòng đầu, nhóm chốt target có căn cứ và version hóa.
+- Promotion gate: validation NDCG@10 cao hơn ít nhất 3% tương đối so với baseline mạnh nhất; test không thấp hơn baseline quá 1%.
+- Candidate Recall@200 ≥ 0,70 và coverage@10 ≥ 90% coverage của baseline mạnh nhất.
+- Nếu không đạt gate, strategy mặc định phải là baseline mạnh nhất và không được tuyên bố ranker đã promote.
 
 ### API/Operations
 

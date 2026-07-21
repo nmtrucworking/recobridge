@@ -35,11 +35,11 @@ Consumer là website/BFF, OpenAPI/JSON đơn giản và đủ latency. gRPC hợ
 
 ### Message broker ở đâu?
 
-Recommendation request cần synchronous response nên dùng REST. Broker phù hợp feedback ingestion target; MVP dùng DB/outbox để giảm hạ tầng nhưng vẫn xử lý dual-write/idempotency.
+Recommendation request cần synchronous response nên dùng REST. MVP ghi feedback trực tiếp vào PostgreSQL và batch training đọc theo watermark, nên chưa có dual-write. Broker/outbox chỉ hợp lý khi xuất hiện downstream consumer bất đồng bộ thật.
 
 ### Nếu API gọi dependency lỗi nửa chừng?
 
-Timeout + retry transient có jitter + circuit breaker + fallback. Event writes dùng idempotency/transaction/outbox để không trùng hoặc mất dữ liệu.
+Model/catalog bundle được validate khi startup và có last-known-good/fallback. Event writes dùng idempotency và một PostgreSQL transaction để không trùng; lỗi DB trả 503 và client chỉ retry với cùng key.
 
 ### Tại sao không random split?
 

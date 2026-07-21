@@ -29,7 +29,7 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 - smoke tests pass;
 - hai user demo có hành vi khác nhau;
 - một anonymous session;
-- script vô hiệu Redis/model dependency để demo fallback.
+- script chuyển model hiện hành sang bundle lỗi/không tồn tại để demo readiness hoặc last-known-good fallback.
 
 ## 3. Kịch bản 8–10 phút
 
@@ -40,7 +40,7 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 5. **1 phút:** anonymous user nhận fallback có `strategy_used=popular`.
 6. **1 phút:** click/add-to-cart và truy vấn DB/log theo request ID.
 7. **1 phút:** gửi event trùng; chứng minh dedup.
-8. **1 phút:** tắt Redis/model dependency; API trả degraded fallback, không treo.
+8. **1 phút:** kích hoạt model failure; API dùng last-known-good/bundled fallback hoặc readiness fail đúng thiết kế.
 9. **1 phút:** mở evaluation report so baseline và nêu hạn chế offline.
 10. **30 giây:** kết luận trade-offs và hướng mở rộng.
 

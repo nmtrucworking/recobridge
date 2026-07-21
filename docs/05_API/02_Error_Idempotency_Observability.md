@@ -22,8 +22,8 @@
 
 | Trường hợp | Response |
 |---|---|
-| Key mới, payload mới | 202, `duplicate=false` |
-| Key cũ, payload cùng hash | 202, `duplicate=true`, cùng logical event ID |
+| Key mới, payload mới | 200 sau DB commit, `duplicate=false` |
+| Key cũ, payload cùng hash | 200, `duplicate=true`, cùng logical event ID |
 | Key cũ, payload khác | 409 IDEMPOTENCY_CONFLICT |
 | Không có key | 400/422 |
 
@@ -59,8 +59,8 @@ Không log bearer token, raw query embedding, full feature vector hoặc user PI
 - `candidate_count`
 - `model_inference_duration_ms`
 - `feedback_duplicate_total`
-- `outbox_lag_seconds`
-- `circuit_breaker_state{dependency}`
+- `event_write_duration_ms`
+- `event_write_failures_total`
 
 ## 5. Correlation
 

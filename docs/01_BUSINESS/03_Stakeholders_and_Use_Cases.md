@@ -63,8 +63,8 @@ flowchart LR
 
 1. Website gửi `Idempotency-Key` và `request_id`.
 2. API validate event và actor/context.
-3. Ghi event + outbox trong một transaction hoặc ghi trực tiếp bền vững ở MVP.
-4. Trả `202 Accepted`/`200 OK` cùng event ID.
+3. Ghi event trực tiếp vào PostgreSQL trong một transaction.
+4. Chỉ sau khi commit, trả `200 OK` cùng event ID và cờ `duplicate`.
 5. Request lặp trả kết quả deduplicated, không tạo event thứ hai.
 
 ### UC-09 — Promote model

@@ -38,9 +38,9 @@ sequenceDiagram
     participant U as Shopper
     participant W as Website/BFF
     participant R as Recommendation API
-    participant F as Feature/Cache Store
+    participant F as In-memory Artifact
     participant M as XGBoost Model
-    participant C as Catalog DB
+    participant C as In-memory Catalog
 
     U->>W: Open page
     W->>R: POST /v1/recommendations
@@ -68,17 +68,13 @@ sequenceDiagram
     participant W as Website
     participant E as Event API
     participant DB as PostgreSQL
-    participant Q as Outbox/Worker
 
     W->>E: POST /v1/events/feedback + Idempotency-Key
     E->>DB: BEGIN
     E->>DB: INSERT event ON CONFLICT DO NOTHING
-    E->>DB: INSERT outbox if new
     E->>DB: COMMIT
     DB-->>E: inserted or duplicate
-    E-->>W: 202 accepted / duplicate=true
-    Q->>DB: poll unpublished outbox
-    Q->>DB: mark published after processing
+    E-->>W: 200 committed / duplicate flag
 ```
 
 ## 4. Failure sequence
@@ -94,7 +90,7 @@ sequenceDiagram
     R->>F: retry once with jitter (transient only)
     F--xR: timeout
     R->>R: circuit failure count++
-    R->>R: use cached popularity fallback
+    R->>R: use bundled popularity fallback
     R-->>B: 200 degraded=true
 ```
 

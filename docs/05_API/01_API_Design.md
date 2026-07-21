@@ -80,7 +80,7 @@
 
 ## 5. Headers
 
-- `Authorization: Bearer ...`
+- `Authorization: Bearer ...` với opaque token lấy từ environment trong MVP; không tuyên bố JWT/OAuth.
 - `X-Request-ID` optional; server tạo nếu thiếu.
 - `Idempotency-Key` bắt buộc cho event write.
 - `Traceparent` nếu dùng OpenTelemetry.

@@ -41,19 +41,27 @@ Các mô tả chính thức không hoàn toàn đồng nhất:
 
 **Quyết định:** pipeline không được hard-code tên cột phụ hoặc chiều vector. Bước ingestion phải đọc schema Parquet thực tế, ghi vào `schema_snapshot.json` và dừng nếu không khớp contract được chấp nhận.
 
-## 4. Câu hỏi mở bắt buộc giải quyết trước Release
+## 4. Các câu hỏi đã được chốt ngày 2026-07-21
 
-1. Nhóm dùng raw dataset 1,9 GB hay preprocessed dataset 1,3 GB làm nguồn vật lý chính?
-2. Kích thước sample và tiêu chí chọn user/item là gì?
-3. Website demo dùng stack nào, và catalog UI lấy dữ liệu từ đâu?
-4. XGBoost dùng classifier baseline hay `XGBRanker` trong bản demo cuối?
-5. Candidate generation tạo bao nhiêu ứng viên trước re-ranking?
-6. Redis có được triển khai thật hay chỉ là target architecture?
-7. Endpoint event sẽ ghi trực tiếp PostgreSQL hay qua queue nội bộ?
-8. Điều khoản dataset có cho phép nhóm đưa file/snapshot lên GitHub công khai không?
-9. Ngưỡng nghiệm thu metric sẽ được chốt sau baseline đầu tiên như thế nào?
+| Câu hỏi | Quyết định |
+|---|---|
+| Nguồn dữ liệu | Raw Parquet hiện có; curated cohort 20.000 buyers, seed 42 |
+| Website demo | FastAPI/Jinja + vanilla JavaScript, catalog từ artifact/metadata đã curate |
+| Ranker | `XGBRanker(objective="rank:ndcg")` |
+| Candidate cap | Tối đa 200 item trước re-ranking |
+| Redis | Không triển khai trong MVP |
+| Event write | Ghi trực tiếp PostgreSQL trong transaction, không queue/outbox |
+| Dataset công khai | Không commit raw/snapshot cho tới khi có bằng chứng quyền phân phối |
+| Promotion metric | +3% validation NDCG@10 so với baseline mạnh nhất và các guardrail trong `GOV-04` |
 
-## 5. Sai lầm cần tránh
+Chi tiết và thứ tự ưu tiên quyết định xem [Baseline sản phẩm MVP](04_Product_MVP_Baseline.md).
+
+## 5. Câu hỏi còn mở nhưng không chặn triển khai
+
+1. Điều khoản dataset có cho phép phát hành curated snapshot hay chỉ cho phép script tái tạo?
+2. Thông số máy demo chính thức là gì để ghi vào performance report?
+
+## 6. Sai lầm cần tránh
 
 - Gán ý nghĩa cụm K-Means trước khi xem centroid.
 - Tạo negative samples ngẫu nhiên từ toàn catalog rồi gọi là “không quan tâm”.

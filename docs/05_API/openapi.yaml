@@ -61,8 +61,8 @@ paths:
             schema:
               $ref: '#/components/schemas/ExposureEvent'
       responses:
-        '202':
-          description: Accepted or deduplicated
+        '200':
+          description: Durably committed or deduplicated
           content:
             application/json:
               schema:
@@ -86,8 +86,8 @@ paths:
             schema:
               $ref: '#/components/schemas/FeedbackEvent'
       responses:
-        '202':
-          description: Accepted or deduplicated
+        '200':
+          description: Durably committed or deduplicated
           content:
             application/json:
               schema:
@@ -131,7 +131,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      bearerFormat: opaque
   parameters:
     RequestId:
       name: X-Request-ID

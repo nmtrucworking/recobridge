@@ -28,11 +28,12 @@ Liên kết yêu cầu → thiết kế → API/model → test → bằng chứn
 | NFR-04 | Dependency lỗi không gây cascade | timeout + circuit breaker | RES-T02 | TBD |
 | NFR-05 | Có log/tracing theo request | structured log + request_id | OBS-T01 | TBD |
 | ML-01 | K-Means phân cụm trên feature chuẩn hóa | scaler + KMeans | ML-T01 | TBD |
-| ML-02 | XGBoost vượt popularity baseline ở metric chính | time split + evaluation | ML-T02 | TBD |
+| ML-02 | XGBRanker đạt promotion gate trong `GOV-04` | time split + evaluation | ML-T02 | TBD |
 | ML-03 | Có đánh giá coverage/diversity | evaluation report | ML-T03 | TBD |
 | SEC-01 | API được xác thực | bearer/API key nội bộ | SEC-T01 | TBD |
 | SEC-02 | Không lưu raw token/PII trong log | log filter | SEC-T02 | TBD |
 | OPS-01 | Toàn bộ MVP khởi động bằng Docker Compose | compose file | OPS-T01 | TBD |
+| E2E-01 | Website render recommendation thật và feedback được commit vào PostgreSQL | web → REST API → DB | E2E-T01 | TBD |
 
 ## 2. Quy tắc cập nhật
 
