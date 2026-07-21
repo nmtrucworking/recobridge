@@ -15,7 +15,7 @@
 
 - Unit: feature transforms, candidate merge, post-filter, error classification.
 - Contract: OpenAPI request/response và consumer expectations.
-- Integration: API + PostgreSQL + Redis/model artifact.
+- Integration: API + PostgreSQL + model/catalog artifact.
 - ML: split/leakage, baseline, reproducibility.
 - Resilience: timeout, duplicate, dependency failure.
 - E2E: website → API → render → feedback → DB.
@@ -33,7 +33,7 @@
 | EVT-T03 | duplicate idempotency key deduplicated |
 | EVT-T04 | same key/different payload returns 409 |
 | RES-T01 | DB timeout retry does not duplicate event |
-| RES-T02 | feature/cache dependency triggers circuit/fallback |
+| RES-T02 | model artifact unavailable/corrupt triggers readiness failure or bundled fallback |
 | RES-T03 | new user receives popular fallback |
 | ML-T01 | preprocessing fitted train-only and K-Means reproducible |
 | ML-T02 | XGBoost compared with same-split baseline |
@@ -43,6 +43,7 @@
 | PERF-T01 | p95 within declared profile |
 | OPS-T01 | clean compose startup and health pass |
 | DEMO-T01 | recommendation changes by user/context and is not static |
+| E2E-T01 | website renders API result and committed feedback can be queried by request ID |
 
 ## 3. ML tests
 

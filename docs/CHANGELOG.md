@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0] — 2026-07-21
+
+### Changed
+
+- Chốt baseline sản phẩm MVP và Definition of Done dựa trên implementation/evidence.
+- Chọn XGBRanker, cohort release 20.000 users, candidate cap 200 và promotion gate cụ thể.
+- Chốt stack FastAPI/PostgreSQL/Docker Compose; loại Redis, broker, outbox và online learning khỏi MVP.
+- Chốt event API chỉ trả thành công sau durable commit và dùng opaque Bearer token cho demo.
+- Chuyển các câu hỏi kiến trúc chặn triển khai thành quyết định; chỉ giữ lại licensing và thông số máy demo là câu hỏi mở.
+- Thêm backlog P0 theo dependency, đầu ra và acceptance để triển khai thành sản phẩm chạy thật.
+
 ## [1.0.0] — 2026-07-18
 
 ### Added

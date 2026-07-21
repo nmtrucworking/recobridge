@@ -18,9 +18,8 @@
 | Website/BFF → Recommendation | REST/HTTPS + JSON | tương thích rộng, OpenAPI, debug và demo dễ |
 | Website → Event API | REST/HTTPS + JSON | schema nhỏ, có idempotency và response rõ |
 | Recommendation → PostgreSQL | DB protocol | transaction và constraint |
-| Recommendation → Redis | Redis protocol | cache low-latency |
 | Batch pipeline → files | Parquet/PyArrow | columnar, phù hợp analytics |
-| Feedback → training pipeline | DB batch/outbox | đơn giản cho MVP; broker ở target |
+| Feedback → training pipeline | PostgreSQL batch read | ghi trực tiếp, đơn giản và đủ cho MVP |
 
 ## 2. REST vs gRPC vs Message Broker
 

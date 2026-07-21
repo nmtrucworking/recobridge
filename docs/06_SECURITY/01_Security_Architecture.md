@@ -25,17 +25,13 @@ flowchart LR
     Browser[Browser] -->|Public boundary| BFF[BFF]
     BFF -->|Service credential| API[Recommendation API]
     API -->|DB credential| DB[(PostgreSQL)]
-    API -->|Cache credential| R[(Redis)]
     Ops[ML/Admin] -->|Privileged boundary| REG[Model/Artifact Store]
     REG --> API
 ```
 
 ## 3. Authentication/authorization
 
-MVP có thể dùng một trong hai:
-
-- API key/service token nội bộ cho BFF;
-- JWT bearer với audience/issuer/expiry validation.
+MVP dùng một opaque Bearer service token cho BFF, đọc từ environment và so sánh constant-time. JWT/OAuth với audience/issuer/expiry validation là target sau MVP.
 
 Scopes đề xuất:
 

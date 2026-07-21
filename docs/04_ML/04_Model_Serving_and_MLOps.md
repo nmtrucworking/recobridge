@@ -59,11 +59,11 @@ Mọi response có `model_version` và `strategy_used`.
 - Data: null/cardinality/distribution drift.
 - Model: score distribution, fallback rate, coverage.
 - Business: exposure/click/cart/buy by strategy.
-- Integrity: duplicate event count, outbox lag.
+- Integrity: duplicate event count, event write failure rate.
 
 ## 6. Retraining
 
-MVP: manual hoặc scheduled batch. Trigger target:
+MVP: manual batch bằng CLI/job Docker Compose. Scheduled batch là target sau MVP. Trigger target:
 
 - định kỳ;
 - đủ event mới;

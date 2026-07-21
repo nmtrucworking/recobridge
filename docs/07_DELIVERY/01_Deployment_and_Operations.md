@@ -18,9 +18,10 @@ Docker Compose gồm:
 - `web` hoặc BFF demo;
 - `recommendation-api`;
 - `postgres`;
-- `redis` tùy chọn;
 - batch job/profile để seed/train;
 - volume model artifacts.
+
+Redis, broker và outbox không thuộc MVP. API nạp artifact/lookup read-only vào memory khi startup.
 
 ## 2. Startup order
 
@@ -52,7 +53,7 @@ Không chỉ dùng `depends_on`; health check và retry startup cần rõ.
 
 - Liveness: process loop hoạt động.
 - Readiness: model valid, DB reachable, catalog count > 0.
-- Redis failure có thể readiness `degraded` nếu fallback không phụ thuộc Redis.
+- PostgreSQL event store lỗi không làm recommendation readiness fail nếu model/fallback bundle và catalog vẫn hợp lệ; event endpoint phải trả lỗi rõ ràng.
 
 ## 6. Demo reliability checklist
 

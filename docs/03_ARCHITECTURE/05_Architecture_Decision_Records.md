@@ -42,11 +42,23 @@
 **Reason:** phù hợp tài nguyên, tái lập demo và tiêu chí học phần.  
 **Consequence:** không chứng minh autoscaling production; chỉ trình bày target.
 
-## ADR-006 — Feedback REST sync-ack + async processing
+## ADR-006 — Feedback REST durable synchronous commit
 
 **Status:** Accepted.  
-**Decision:** API validate và ghi bền vững nhanh, trả accepted; downstream aggregation chạy batch/outbox.  
-**Alternative:** publish Kafka trực tiếp; tăng hạ tầng và failure modes.
+**Decision:** API validate, ghi trực tiếp PostgreSQL trong transaction và chỉ trả `200` sau commit; batch training đọc theo watermark.
+**Alternative:** Kafka/outbox; chưa có downstream consumer độc lập nên chỉ tăng hạ tầng và failure modes trong MVP.
+
+## ADR-009 — Không dùng Redis trong MVP
+
+**Status:** Accepted.
+**Decision:** load model, feature lookup, catalog và popularity fallback read-only vào memory khi startup.
+**Trade-off:** mỗi replica giữ một bản dữ liệu nhưng deployment MVP chỉ có một replica; đổi lại giảm dependency và failure mode.
+
+## ADR-010 — XGBRanker là ranker release
+
+**Status:** Accepted.
+**Decision:** dùng `XGBRanker(objective="rank:ndcg")` với graded relevance; không phát hành `XGBClassifier`.
+**Reason:** mục tiêu cần tối ưu thứ tự top-N theo query group và metric chính là NDCG@10.
 
 ## ADR-007 — Time-based evaluation
 

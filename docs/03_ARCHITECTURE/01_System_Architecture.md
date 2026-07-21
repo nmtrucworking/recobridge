@@ -45,7 +45,6 @@ flowchart TB
     end
     subgraph Data
       PG[(PostgreSQL)]
-      REDIS[(Redis optional)]
       ART[(Model Artifact Volume)]
       PARQ[(Synerise Parquet)]
     end
@@ -54,7 +53,6 @@ flowchart TB
     BFF -->|REST JSON| API
     FE -->|feedback REST| API
     API --> PG
-    API --> REDIS
     API --> ART
     WORKER --> PARQ
     WORKER --> PG
@@ -95,9 +93,9 @@ Không chạy full ETL hoặc model training trong request path.
 
 | Thuộc tính | Cơ chế |
 |---|---|
-| Latency | candidate cap, precomputed features, Redis cache |
+| Latency | candidate cap, precomputed features và in-memory read-only lookup |
 | Reliability | timeout, retry có điều kiện, circuit breaker, fallback |
-| Integrity | idempotency key, unique constraint, transaction/outbox |
+| Integrity | idempotency key, unique constraint và PostgreSQL transaction |
 | Scalability | stateless API, batch partitioning |
 | Auditability | request_id, model_version, feature_version |
 | Evolvability | versioned API và model contract |

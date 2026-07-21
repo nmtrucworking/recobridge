@@ -43,24 +43,16 @@ Giá trị phải được đo, không trình bày như SLA production.
 
 ## 4. Circuit breaker
 
-Trạng thái: Closed → Open → Half-Open. Circuit bảo vệ dependency như Redis/feature service, không che lỗi logic nội bộ. Khi open:
+Trạng thái: Closed → Open → Half-Open. Circuit là target cho dependency remote sau MVP; recommendation MVP dùng artifact local nên ưu tiên startup validation và timeout cho PostgreSQL event write. Khi circuit được bổ sung:
 
 - fail-fast dependency call;
 - sử dụng local/cached fallback;
 - phát metric `circuit_state` và alert;
 - thử probe giới hạn ở half-open.
 
-## 5. Transaction và dual-write
+## 5. Transaction và training input
 
-Feedback event cần vừa lưu event vừa đưa vào pipeline. Ghi DB rồi publish riêng có thể mất message nếu crash giữa hai bước. Target pattern:
-
-1. transaction insert feedback;
-2. transaction insert outbox record;
-3. commit;
-4. worker publish/process outbox;
-5. mark published.
-
-MVP chưa có broker vẫn có thể dùng outbox làm hàng đợi DB và batch consumer.
+MVP chỉ có một durable write: transaction insert feedback vào PostgreSQL rồi commit trước khi trả `200`. Batch training đọc trực tiếp bảng event theo watermark; vì không publish sang broker nên không có dual-write hoặc outbox trong MVP. Outbox chỉ được bổ sung khi có downstream broker/service thật.
 
 ## 6. Idempotency design
 
@@ -84,7 +76,7 @@ Fallback phải được log bằng `strategy_used`, không được ngụy tran
 
 | Failure | Expected behavior |
 |---|---|
-| Redis down | DB/local fallback; API không treo |
+| PostgreSQL event store down | recommendation vẫn chạy; event endpoint trả 503 rõ ràng |
 | Model file corrupt | startup readiness fail hoặc last-known-good model |
 | DB write timeout | retry nếu transaction chưa commit; idempotency bảo vệ |
 | Duplicate feedback | no duplicate row; response duplicate flag |

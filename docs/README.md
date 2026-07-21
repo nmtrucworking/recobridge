@@ -1,6 +1,6 @@
 # RecoBridge — Bộ tài liệu dự án
 
-**RecoBridge** là hệ thống gợi ý sản phẩm thông minh tích hợp vào website bán hàng thông qua REST API. Bộ dữ liệu chính được lựa chọn là **Synerise Dataset – RecSys Challenge 2025**. Phương án Machine Learning là kiến trúc hybrid: **K-Means hỗ trợ phân khúc/candidate routing**, **XGBoost thực hiện scoring hoặc learning-to-rank**.
+**RecoBridge** là hệ thống gợi ý sản phẩm thông minh tích hợp vào website bán hàng thông qua REST API. Bộ dữ liệu chính được lựa chọn là **Synerise Dataset – RecSys Challenge 2025**. Phương án Machine Learning đã chốt là kiến trúc hybrid: **K-Means hỗ trợ phân khúc/candidate routing**, **XGBRanker thực hiện learning-to-rank**.
 
 | Thuộc tính | Giá trị |
 |---|---|
@@ -46,11 +46,14 @@ RecoBridge_Docs_v1.0/
 | QA | [Acceptance Criteria](01_BUSINESS/04_Scope_KPI_Acceptance.md) → [Test Strategy](07_DELIVERY/02_Test_Strategy.md) → [Demo Runbook](07_DELIVERY/05_Demo_Runbook.md) |
 | Người thuyết trình | [ADR](03_ARCHITECTURE/05_Architecture_Decision_Records.md) → [Risk Register](07_DELIVERY/04_Risk_Register.md) → [Defense Guide](07_DELIVERY/06_Presentation_Defense.md) |
 
+Nguồn quyết định triển khai ưu tiên cho toàn nhóm: [Baseline sản phẩm MVP](00_GOVERNANCE/04_Product_MVP_Baseline.md).
+Danh sách công việc có dependency và acceptance: [Backlog hoàn thiện sản phẩm](07_DELIVERY/07_Implementation_Backlog.md).
+
 ## 4. Baseline kiến trúc đã chốt
 
 - **Dữ liệu lịch sử:** Synerise Parquet, không nạp nguyên khối vào API serving.
-- **Serving store:** PostgreSQL cho catalog/metadata và recommendation logs; Redis là tùy chọn cache.
-- **ML:** K-Means phân cụm người dùng; candidate generation theo cụm/danh mục/popularity; XGBoost xếp hạng top-N.
+- **Serving store:** PostgreSQL cho event/audit; catalog và model lookup được nạp read-only vào memory. Không dùng Redis trong MVP.
+- **ML:** K-Means phân cụm người dùng; candidate generation theo cụm/danh mục/popularity; XGBRanker xếp hạng top-N.
 - **Tích hợp:** website/BFF gọi Recommendation Service bằng REST/JSON.
 - **Event ingestion:** MVP nhận sự kiện bằng REST và lưu bền vững; message broker là hướng mở rộng khi lưu lượng hoặc yêu cầu decoupling tăng.
 - **Triển khai:** Docker Compose cho demo học phần.

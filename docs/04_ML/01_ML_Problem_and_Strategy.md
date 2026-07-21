@@ -38,13 +38,7 @@ K-Means phù hợp vì dễ giải thích và scale, nhưng giả định cluste
 
 ## 4. Vai trò XGBoost
 
-### Giai đoạn 1
-
-`XGBClassifier` dự đoán purchase propensity cho candidate pairs, giúp hoàn thiện pipeline nhanh.
-
-### Giai đoạn 2
-
-`XGBRanker(objective="rank:ndcg")`, qid theo user/cutoff hoặc request. Relevance có thể binary hoặc graded. XGBoost hỗ trợ `rank:ndcg`, `rank:map`, `rank:pairwise`; lựa chọn phụ thuộc label và metric mục tiêu.
+MVP dùng `XGBRanker(objective="rank:ndcg")`, qid theo `(user_id, cutoff)`. Relevance graded: purchase = 2, add-to-cart = 1, unobserved candidate = 0. `XGBClassifier` không thuộc release MVP vì mục tiêu sản phẩm là tối ưu thứ tự top-N, không chỉ xác suất độc lập của từng pair.
 
 ## 5. Hybrid flow
 
