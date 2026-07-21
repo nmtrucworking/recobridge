@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "ed44957e45341390",
+        "id": "750b907fc851a5f5",
         "type": "tabs",
         "children": [
           {
-            "id": "63fee491e33f284a",
+            "id": "090bbcdc7e94aff0",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "08_APPENDICES/01_References.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "01_References"
+              "title": "Tab mới"
             }
           }
         ]
