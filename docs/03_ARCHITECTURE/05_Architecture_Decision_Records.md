@@ -36,11 +36,11 @@
 **Reason:** transaction, unique constraint, query/report đơn giản.  
 **Alternative:** document store hoặc event store chuyên dụng; chưa cần trong MVP.
 
-## ADR-005 — Docker Compose, không Kubernetes
+## ADR-005 — Chạy trực tiếp các thành phần MVP
 
 **Status:** Accepted.  
-**Reason:** phù hợp tài nguyên, tái lập demo và tiêu chí học phần.  
-**Consequence:** không chứng minh autoscaling production; chỉ trình bày target.
+**Reason:** giảm phụ thuộc công cụ, dễ phát triển và demo trên máy local.
+**Consequence:** từng tiến trình và PostgreSQL phải được khởi động, kiểm tra độc lập; không chứng minh autoscaling production.
 
 ## ADR-006 — Feedback REST durable synchronous commit
 

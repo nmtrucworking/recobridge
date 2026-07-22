@@ -20,7 +20,7 @@
 | XGBRanker learning-to-rank | Online learning |
 | REST API + OpenAPI | gRPC production |
 | PostgreSQL; in-memory read-only lookup | Redis/Kafka/Kubernetes |
-| Docker Compose | Multi-region |
+| Local process deployment | Multi-region |
 | Exposure/feedback logging mới | Historical exposure reconstruction |
 
 ## 2. KPI theo tầng
@@ -64,7 +64,7 @@
 | AC-05 | top_k vượt giới hạn | gọi API | trả 422/400 theo contract |
 | AC-06 | Product không có catalog | post-filter | item bị loại |
 | AC-07 | Model mới kém baseline | promote | pipeline từ chối |
-| AC-08 | Docker host sạch | `docker compose up` | health checks pass |
+| AC-08 | Máy local sạch | khởi động API, web và PostgreSQL | health checks pass |
 
 ## 4. Điều kiện để tuyên bố “hoàn thành”
 

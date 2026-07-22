@@ -21,7 +21,7 @@
 | R-06 | API latency cao | 3 | 4 | 12 | cap candidates, precompute, cache | p95 > target |
 | R-07 | Duplicate feedback | 3 | 4 | 12 | idempotency + unique constraint | event count bất thường |
 | R-08 | Demo phụ thuộc internet | 3 | 5 | 15 | local images/data/model; prebuild | download failure |
-| R-09 | Docker khác máy | 3 | 4 | 12 | relative paths, env example, clean-machine test | path/port lỗi |
+| R-09 | Runtime khác máy | 3 | 4 | 12 | dependency lock, env example, clean-machine test | path/port lỗi |
 | R-10 | Tài liệu lệch code | 4 | 3 | 12 | update in same PR; contract tests | endpoint mismatch |
 | R-11 | License dataset không rõ | 3 | 5 | 15 | không redistribute; kiểm tra terms | repo public chứa data |
 | R-12 | Thu thập PII ngoài ý muốn | 2 | 5 | 10 | schema allowlist, log filter | email/token trong log |

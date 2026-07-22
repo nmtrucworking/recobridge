@@ -54,6 +54,6 @@ Một tuyên bố “đã hoàn thành” phải có ít nhất một trong các
 - test report;
 - model artifact cùng metric file;
 - ảnh chụp hoặc video demo;
-- Docker Compose startup log.
+- log khởi động API, web và PostgreSQL local.
 
 Không sử dụng ảnh mockup hoặc JSON nhập tay làm bằng chứng hệ thống chạy.

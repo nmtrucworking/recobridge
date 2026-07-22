@@ -24,7 +24,7 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 - clone release tag;
 - `.env` hợp lệ;
 - model bundle checksum pass;
-- Docker images đã build;
+- dependency đã cài và ứng dụng đã build;
 - database reset/seed script;
 - smoke tests pass;
 - hai user demo có hành vi khác nhau;
@@ -35,7 +35,7 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 
 1. **30 giây:** nêu bài toán và boundary.
 2. **60 giây:** mở architecture diagram, chỉ rõ REST và data feedback path.
-3. **60 giây:** `docker compose ps` và health endpoints.
+3. **60 giây:** kiểm tra các tiến trình local và health endpoints.
 4. **2 phút:** user A/B nhận danh sách khác nhau; mở API response có request/model version.
 5. **1 phút:** anonymous user nhận fallback có `strategy_used=popular`.
 6. **1 phút:** click/add-to-cart và truy vấn DB/log theo request ID.
@@ -46,8 +46,8 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 
 ## 4. Câu lệnh/bằng chứng cần quay
 
-- `docker compose up -d`
-- `docker compose ps`
+- lệnh khởi động API và web local
+- danh sách tiến trình đang chạy
 - `/v1/health/ready`
 - request/response recommendation
 - query recommendation logs/feedback count
@@ -63,6 +63,6 @@ Nếu UI lỗi, dùng Swagger/curl/Postman nhưng vẫn phải chứng minh DB/l
 
 - sửa DB tay ngay trước hội đồng mà không giải thích;
 - dùng JSON tĩnh;
-- nói Redis/Kafka/Kubernetes đang chạy nếu không có container/process;
+- nói Redis/Kafka/Kubernetes đang chạy nếu không có process;
 - đưa metric không có report;
 - giấu fallback bằng cách gọi đó là XGBoost output.

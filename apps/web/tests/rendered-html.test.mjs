@@ -36,9 +36,21 @@ test("ships product metadata and removes starter preview code", async () => {
 
   assert.match(page, /strategy_used|strategy/);
   assert.match(page, /add_to_cart/);
+  assert.match(page, /\/api\/recommendations/);
+  assert.match(page, /\/api\/events\/exposure/);
+  assert.match(page, /\/api\/events\/feedback/);
   assert.match(layout, /og\.png/);
   assert.match(layout, /locale: "vi_VN"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   await access(new URL("../public/og.png", import.meta.url));
   await assert.rejects(access(new URL("../app/_sites-preview", import.meta.url)));
+});
+
+test("keeps the backend token behind same-origin BFF routes", async () => {
+  const proxy = await readFile(new URL("../app/api/_proxy.ts", import.meta.url), "utf8");
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+
+  assert.match(proxy, /RECOMMENDATION_API_TOKEN/);
+  assert.match(proxy, /Authorization/);
+  assert.doesNotMatch(page, /RECOMMENDATION_API_TOKEN|Authorization:\s*`Bearer/);
 });

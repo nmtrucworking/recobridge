@@ -1,39 +1,39 @@
 {
     "project":  "RecoBridge",
-    "version":  "1.1.0",
-    "generated_at":  "2026-07-21",
-    "tracked_file_count":  44,
+    "version":  "1.2.0",
+    "generated_at":  "2026-07-22",
+    "tracked_file_count":  43,
     "note":  "manifest.json is intentionally excluded from its own checksum list",
     "files":  [
                   {
                       "path":  "00_GOVERNANCE/01_Document_Control.md",
-                      "size":  2539,
-                      "sha256":  "af8246ec30fc7eca743bf3b00163ea6930c6908ac5f98b8c974515a42c8d0111"
+                      "size":  2561,
+                      "sha256":  "98ce3617c46c62b11f501852e97b18e5978901c6cff073e3e21cffb932c1a32a"
                   },
                   {
                       "path":  "00_GOVERNANCE/02_Assumptions_Decisions_Open_Questions.md",
-                      "size":  4446,
-                      "sha256":  "0156cef514859161f25883b80e40f4e085fb8957fb9b2300087b65e772c745f5"
+                      "size":  4474,
+                      "sha256":  "52c1b9c42859728061113ed7a4a97769f03c099224d6675a8bb0254bcc80c3ac"
                   },
                   {
                       "path":  "00_GOVERNANCE/03_Requirement_Traceability_Matrix.md",
-                      "size":  2802,
-                      "sha256":  "5dad1a64327c6368553e639356c08bf672a14a154891be9dc0c49170eeb7f715"
+                      "size":  2824,
+                      "sha256":  "dddad975fc618ece163b698c2d3fe7f997851342fda79e19e798265162e2aeeb"
                   },
                   {
                       "path":  "00_GOVERNANCE/04_Product_MVP_Baseline.md",
-                      "size":  8969,
-                      "sha256":  "80026cd4f70059e37ed5113a6adc6e687e8a9cfa57a9e379a014a66166b1bd48"
+                      "size":  9006,
+                      "sha256":  "23685e17f64db8fc6905373852aaf425dd4965ece5492977b065d5caf3cec53e"
                   },
                   {
                       "path":  "01_BUSINESS/01_Project_Charter.md",
-                      "size":  3351,
-                      "sha256":  "8943aa1dd671870aa4efcc5226b627cc8252e211c854d4e5dba2b6d26eaa8ad5"
+                      "size":  3367,
+                      "sha256":  "41ed0de1f0726b9027032d29992c01ba2afe5771b269bfeb37b1972a6695f011"
                   },
                   {
                       "path":  "01_BUSINESS/02_Business_Requirements.md",
-                      "size":  3503,
-                      "sha256":  "2cc09f0466b16e3e654ab2d81a8a4e9f3b048930ead03cc1cdea41f5bef230f3"
+                      "size":  3509,
+                      "sha256":  "a0614b58e4ff526f0f38195e9afd8764274cf266803ee700b40524ee83d3df38"
                   },
                   {
                       "path":  "01_BUSINESS/03_Stakeholders_and_Use_Cases.md",
@@ -42,8 +42,8 @@
                   },
                   {
                       "path":  "01_BUSINESS/04_Scope_KPI_Acceptance.md",
-                      "size":  3485,
-                      "sha256":  "3d14bbe91de3980af75b44721d11ab3a2c372032a6e7c76c18d2a5413d018c45"
+                      "size":  3513,
+                      "sha256":  "5f5cb199821eabd0d61b9368cb42ef4a2518c210a837b85f85d8482d89571106"
                   },
                   {
                       "path":  "02_DATA/01_Dataset_Selection_Synerise.md",
@@ -73,7 +73,7 @@
                   {
                       "path":  "03_ARCHITECTURE/01_System_Architecture.md",
                       "size":  2718,
-                      "sha256":  "c644c87c1425b08bc774521441b855ccb6151327cc78dc5cdbb156e1c295ed37"
+                      "sha256":  "b173e00c3d34c772a2f770645d33a296f6ece1715e3ce6e3397d1ce990acb320"
                   },
                   {
                       "path":  "03_ARCHITECTURE/02_Data_Flow_and_Sequence_Diagrams.md",
@@ -92,8 +92,8 @@
                   },
                   {
                       "path":  "03_ARCHITECTURE/05_Architecture_Decision_Records.md",
-                      "size":  3253,
-                      "sha256":  "0b5d7124311abe00c0c3fe2f995434c8473108cb1277d00730cfdf7b70d742fd"
+                      "size":  3337,
+                      "sha256":  "76ab0e77f2969d9de304d1472ec8ba3ab65814fa5afd1fbeb5a89ad214bd0fea"
                   },
                   {
                       "path":  "04_ML/01_ML_Problem_and_Strategy.md",
@@ -112,8 +112,8 @@
                   },
                   {
                       "path":  "04_ML/04_Model_Serving_and_MLOps.md",
-                      "size":  2324,
-                      "sha256":  "f39046c1b32d8f6a116119f1eddf9833cfc41e990b5ec74c623fb532abafed7e"
+                      "size":  2311,
+                      "sha256":  "e8e21b27243786e8abefb8b7bfe471455c17afac82cc433e8f25d13414f9bdba"
                   },
                   {
                       "path":  "05_API/01_API_Design.md",
@@ -132,8 +132,8 @@
                   },
                   {
                       "path":  "06_SECURITY/01_Security_Architecture.md",
-                      "size":  2148,
-                      "sha256":  "61a9a79cf9de9687480ae0bbb4e9394b57b9dd8c7cca6c96c2d2e1eac97cd92d"
+                      "size":  2152,
+                      "sha256":  "0a3233415d2e8724d70ff240c9e9a57adc8b67e03ff6fa3a5bd2df5ab36dec48"
                   },
                   {
                       "path":  "06_SECURITY/02_Threat_Model.md",
@@ -142,63 +142,58 @@
                   },
                   {
                       "path":  "07_DELIVERY/01_Deployment_and_Operations.md",
-                      "size":  2080,
-                      "sha256":  "f142aa64b00e89c26e081479bbaae2cde10fc95c1a4b4c823ec3bdcd8575540e"
+                      "size":  2254,
+                      "sha256":  "245dcf35e654d62dc3b8bb7de85d68a29b5987d703049a7f6dbdd30a39a23f0a"
                   },
                   {
                       "path":  "07_DELIVERY/02_Test_Strategy.md",
-                      "size":  2704,
-                      "sha256":  "4d1725294bccc0e3f8b5e666aefa1d90f403cf5264cad3f27b71f6ce3b6ec7ca"
+                      "size":  2702,
+                      "sha256":  "136cdc69fdf9bab8b58e955d046385365d2185b04b762bda439fc7309b92e4b9"
                   },
                   {
                       "path":  "07_DELIVERY/03_Project_Plan.md",
-                      "size":  2082,
-                      "sha256":  "b49f2a77b5972701f0a5a4e9a82bd98cbb2e3d9fca582fe93fcf9c9fd8c7e103"
+                      "size":  2087,
+                      "sha256":  "c6b17bf5c0d1222e73a1a38687ee3898e2af6fdcf7b6dc5db95c3a9619641d64"
                   },
                   {
                       "path":  "07_DELIVERY/04_Risk_Register.md",
-                      "size":  2273,
-                      "sha256":  "e51ba0e77c82dafed7fbe37d5f8412ac6d615bcdebc73776d601cf615fada690"
+                      "size":  2275,
+                      "sha256":  "c5da087b49ed26752f8f7b1a9946596c2593a8dec066908311ee5daebe72c0ef"
                   },
                   {
                       "path":  "07_DELIVERY/05_Demo_Runbook.md",
-                      "size":  2732,
-                      "sha256":  "b4b9a9d1a00b90a997d3520cc8361ca5fc501876649468abcdbba2e7f013d633"
+                      "size":  2797,
+                      "sha256":  "226a3ae6a294e82838c9f7df1d2e98ddccdb947766b083512c9e76563f8b5ab6"
                   },
                   {
                       "path":  "07_DELIVERY/06_Presentation_Defense.md",
-                      "size":  3529,
-                      "sha256":  "cda1563713ef1bfce7d7700099819bd3e04e81def06eb6c6539adfd8aea4e4c0"
+                      "size":  3554,
+                      "sha256":  "ce2446360f6a6a76e46ea8626ce5fc21cf008377504a8cf143bc37bd1132837d"
                   },
                   {
                       "path":  "07_DELIVERY/07_Implementation_Backlog.md",
-                      "size":  4130,
-                      "sha256":  "176c7595647eca43e8328205de46769fdc4ac1b5efe63b2ec15187cd110893ba"
+                      "size":  4132,
+                      "sha256":  "6a221e3e387ebe603511ffa303a04ed59369697d9f94b0f19b27deb453ce74b5"
                   },
                   {
                       "path":  "08_APPENDICES/01_References.md",
-                      "size":  2796,
-                      "sha256":  "e9851266d818ff55568a80711e06be67a317224d77c13afd4e3d5a88fe3e914f"
+                      "size":  2806,
+                      "sha256":  "21b5d1b61cb472c21bb5fc1764855dd53d23abe1674315bd5fe77b7f23b29aa1"
                   },
                   {
                       "path":  "08_APPENDICES/02_Quality_Checklist.md",
-                      "size":  2545,
-                      "sha256":  "85b5e27c88841636e9b65446f9af500292fc63728359003a3261fc01206fde15"
+                      "size":  2561,
+                      "sha256":  "79875d4b17a2a5a0fe96e1b2737d401dffe6f8a977fce3c0e62ab859fb91294a"
                   },
                   {
                       "path":  "08_APPENDICES/03_Rubric_Coverage.md",
-                      "size":  2352,
-                      "sha256":  "d9d6a122f5f619244be6a2283790a1e4140f477016b49412d3d8c449a70fcc89"
+                      "size":  2363,
+                      "sha256":  "70c2d1ec6e8348ef626ac8446f0f99f2f3ef75524bdcf5b39da27e52e0580867"
                   },
                   {
                       "path":  "CHANGELOG.md",
-                      "size":  1862,
-                      "sha256":  "f30d88c86e2fd3c6b5b00a51bfdb3f03ab461d49c2798692973c19f65cf53a75"
-                  },
-                  {
-                      "path":  "examples/docker-compose.reference.yml",
-                      "size":  1217,
-                      "sha256":  "f898ca5bf985264fa2136aacf9dadd6bbfc08c1034db45677fd79dcc55584f82"
+                      "size":  2728,
+                      "sha256":  "4802b56f3288b9416bdf56654cdb5072d4e4c33907ebf56f04f9b3beb1eae769"
                   },
                   {
                       "path":  "examples/event-schema.json",
@@ -217,13 +212,13 @@
                   },
                   {
                       "path":  "README.md",
-                      "size":  6494,
-                      "sha256":  "77afc341f76be130b6bda4bc86ced9d3a9d561cb73a1706245b2c96ab8ab9b9f"
+                      "size":  6574,
+                      "sha256":  "a31651e6b2d8878e68a599eec0d61533b528a9e4c4d0332f06da08481818fa77"
                   },
                   {
                       "path":  "VALIDATION_REPORT.md",
-                      "size":  1068,
-                      "sha256":  "e9ef3c71d8309c0fe41d4e8141f213bf6737015ce9be8b01f134e938e959a10d"
+                      "size":  1238,
+                      "sha256":  "6b5c475448df47f3206b18761bc7e35289b8f7dc787cddd24ab53f3d0594332c"
                   }
               ]
 }

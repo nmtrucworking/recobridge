@@ -15,7 +15,7 @@
 
 | Yêu cầu | Tài liệu | Bằng chứng cần có |
 |---|---|---|
-| Sơ đồ kiến trúc tích hợp | ARC-01 | diagram khớp compose |
+| Sơ đồ kiến trúc tích hợp | ARC-01 | diagram khớp runtime thực tế |
 | Data Flow | ARC-02 | trace data end-to-end |
 | Sequence Diagram | ARC-02 | request, feedback, failure |
 | Chọn REST/gRPC/Broker | ARC-03, ADR | thuyết trình trade-off |
@@ -37,7 +37,7 @@
 | Không hard-code | BUS-04, DEL-05 | model-driven response |
 | REST API chạy | API-01/openapi | Swagger/curl + logs |
 | Model thực | ML-03/04 | artifact + metrics |
-| Docker Compose | DEL-01 | clean startup |
+| Local runtime | DEL-01 | clean startup |
 | Website integration | BUS-03, DEL-05 | widget + feedback |
 
 ## 4. Thuyết trình — 10%

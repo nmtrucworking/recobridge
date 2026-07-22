@@ -23,7 +23,7 @@ Backlog này chuyển [baseline sản phẩm](../00_GOVERNANCE/04_Product_MVP_Ba
 | RB-010 | P0 | Recommendation API | FastAPI endpoints khớp OpenAPI, model loader, hybrid/fallback | API-T01..03, ML artifact mismatch và readiness tests | RB-008, RB-009 |
 | RB-011 | P0 | Event API | exposure/feedback durable commit, request hash và dedup | EVT-T01..04; DB lỗi trả 503; retry cùng key không trùng | RB-009, RB-010 |
 | RB-012 | P0 | Website demo | product list/detail, user selector, recommendation widget, tracking | E2E-T01; exposure chỉ gửi sau render; A/B users khác nhau | RB-010, RB-011 |
-| RB-013 | P0 | Docker Compose | `web`, `recommendation-api`, `postgres`, trainer profile, health checks | clean build/up; không cần internet khi chạy demo | RB-008..RB-012 |
+| RB-013 | P0 | Local runtime | `web`, `recommendation-api`, PostgreSQL, trainer profile, health checks | clean build/start; không cần internet khi chạy demo | RB-008..RB-012 |
 | RB-014 | P0 | Verification | unit, contract, integration, ML, failure, performance, smoke scripts | toàn bộ test catalog P0 pass; p95 profile được lưu | RB-013 |
 | RB-015 | P0 | Release evidence | traceability links, logs, metrics, screenshots/video, release notes | mỗi Must requirement có bằng chứng theo commit/model version | RB-014 |
 | RB-016 | P1 | Scheduled retraining | scheduled job + watermark monitoring | không ảnh hưởng manual release path | RB-015 |

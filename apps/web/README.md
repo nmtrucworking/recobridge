@@ -1,8 +1,7 @@
-# vinext-starter
+# RecoBridge Web
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Vinext/React storefront connected to the RecoBridge FastAPI service through
+same-origin BFF routes under `/api`.
 
 ## Prerequisites
 
@@ -16,16 +15,19 @@ npm run dev
 npm run build
 ```
 
+Copy `.env.example` to `.env.local` when the API is not running at
+`http://localhost:8000`. The backend token is read only by the BFF and is never
+included in browser code.
+
 This starter does not use `wrangler.jsonc`.
 
-## Included Shape
+## Integration shape
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+- `POST /api/recommendations` loads profile-specific top-N items.
+- `POST /api/recommendations/related` refreshes related items.
+- `POST /api/events/exposure` records rendered recommendations.
+- `POST /api/events/feedback` records click/cart actions.
+- `GET /api/health` reports the backend readiness state.
 
 ## Workspace Auth Headers
 

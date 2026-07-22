@@ -35,7 +35,7 @@
 11. OpenAPI Specification: `https://spec.openapis.org/oas/v3.1.0.html`
 12. FastAPI Response Model: `https://fastapi.tiangolo.com/tutorial/response-model/`
 13. FastAPI OAuth2/JWT: `https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/`
-14. Docker Compose: `https://docs.docker.com/compose/`
+14. PostgreSQL documentation: `https://www.postgresql.org/docs/`
 15. OpenTelemetry: `https://opentelemetry.io/docs/`
 
 ## Reliability patterns

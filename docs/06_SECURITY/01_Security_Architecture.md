@@ -46,7 +46,7 @@ Không dùng FastAPI sample “username làm token” như production security.
 
 - `.env.example` chỉ có tên biến, không có secret thật.
 - Secret không commit Git.
-- Docker Compose đọc environment/secret file local.
+- Các tiến trình đọc environment/secret file local.
 - Rotate credential nếu lộ trong log/commit.
 
 ## 5. Input and abuse controls

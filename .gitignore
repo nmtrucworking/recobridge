@@ -1,6 +1,38 @@
+.vscode/
+
 apps/ml/venv/
 .venv/
+.env
+*.env.local
 apps/ml/artifacts/
 apps/ml/*.duckdb
 __pycache__/
 *.py[cod]
+*.egg-info/
+
+
+# web
+apps/web/.vinext/
+
+apps/web/npm-debug.log*
+apps/web/yarn-debug.log*
+# yarn-error.log*
+# .pnpm-debug.log*
+
+# dependencies
+apps/web/node_modules/
+apps/web/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+
+# typescript
+apps/web/next-env.d.ts
+apps/web/dist/
+apps/web/.wrangler/
+apps/web/outputs/
+apps/web/work/

@@ -57,7 +57,7 @@ Clustering không có accuracy theo nhãn nếu không có ground truth. Dùng s
 | XGBoost | mạnh trên tabular, explainable | phụ thuộc feature/negative sampling |
 | K-Means | nhanh, dễ diễn giải | giả định hình học, cần chọn k |
 | REST | tích hợp dễ | synchronous coupling |
-| Docker Compose | tái lập MVP | không chứng minh production scale |
+| Local process deployment | ít phụ thuộc công cụ | cần quản lý từng tiến trình |
 
 ## 4. Câu kết luận bảo vệ
 

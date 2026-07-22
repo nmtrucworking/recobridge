@@ -1,0 +1,19 @@
+{
+  "model_version": "baseline-hybrid-2026.07.22.1",
+  "feature_version": "demo-fv1",
+  "strategy_version": "hybrid-rules-v1",
+  "user_affinities": {
+    "u_mai": {"audio": 1.0, "sneakers": 0.86, "accessories": 0.72, "travel": 0.35},
+    "u_minh": {"furniture": 1.0, "camera": 0.94, "decor": 0.82, "travel": 0.7}
+  },
+  "products": [
+    {"product_id": "sku_1048", "category": "audio", "popularity": 0.92, "tags": ["technology", "music", "portable"]},
+    {"product_id": "sku_2091", "category": "sneakers", "popularity": 0.98, "tags": ["fashion", "sport", "outdoor"]},
+    {"product_id": "sku_3314", "category": "accessories", "popularity": 0.81, "tags": ["fashion", "minimal", "technology"]},
+    {"product_id": "sku_4172", "category": "accessories", "popularity": 0.73, "tags": ["fashion", "outdoor", "minimal"]},
+    {"product_id": "sku_5088", "category": "furniture", "popularity": 0.76, "tags": ["home", "design", "minimal"]},
+    {"product_id": "sku_6270", "category": "camera", "popularity": 0.84, "tags": ["photography", "technology", "travel"]},
+    {"product_id": "sku_7331", "category": "decor", "popularity": 0.88, "tags": ["home", "green", "design"]},
+    {"product_id": "sku_8406", "category": "travel", "popularity": 0.79, "tags": ["photography", "travel", "outdoor"]}
+  ]
+}

@@ -41,7 +41,7 @@
 | SEC-T01 | invalid/expired token rejected |
 | SEC-T02 | logs contain no token/PII |
 | PERF-T01 | p95 within declared profile |
-| OPS-T01 | clean compose startup and health pass |
+| OPS-T01 | clean local startup and health pass |
 | DEMO-T01 | recommendation changes by user/context and is not static |
 | E2E-T01 | website renders API result and committed feedback can be queried by request ID |
 

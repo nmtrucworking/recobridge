@@ -56,7 +56,7 @@
 
 ## F. Deployment/demo
 
-- [ ] Compose khởi động từ máy/môi trường sạch.
+- [ ] API, web và PostgreSQL khởi động từ máy/môi trường sạch.
 - [ ] Health checks pass.
 - [ ] Demo có hai user khác nhau và anonymous.
 - [ ] Có failure injection.

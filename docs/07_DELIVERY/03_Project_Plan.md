@@ -20,7 +20,7 @@
 | 3 | K-Means + baselines + candidates | cluster report + recall baseline |
 | 4 | XGBoost train/evaluate + artifact bundle | metrics + model version |
 | 5 | FastAPI, website integration, events, resilience | E2E flow + tests |
-| 6 | Docker Compose, load/failure test, docs/slide/demo | release candidate + evidence |
+| 6 | Local runtime setup, load/failure test, docs/slide/demo | release candidate + evidence |
 
 ## 2. Work breakdown
 

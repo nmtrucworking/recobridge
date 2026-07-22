@@ -18,7 +18,7 @@
 | DEC-01 | Synerise là dữ liệu chính | Có hành vi đa sự kiện, thời gian, product attributes và quy mô đủ lớn |
 | DEC-02 | REST/JSON cho website → Recommendation Service | Dễ tích hợp với website hiện có, hỗ trợ OpenAPI và debug trực quan |
 | DEC-03 | K-Means + XGBoost theo pipeline hybrid | K-Means hỗ trợ segmentation/candidate routing; XGBoost tối ưu scoring/ranking |
-| DEC-04 | Docker Compose cho MVP | Phù hợp quy mô học phần và tiêu chí demo toàn hệ thống |
+| DEC-04 | Chạy trực tiếp các thành phần MVP | Giảm phụ thuộc công cụ và phù hợp quy trình phát triển local |
 | DEC-05 | Time-based split | Tránh leakage từ tương lai vào quá khứ |
 | DEC-06 | Event endpoint có idempotency | Bảo vệ dữ liệu khi retry hoặc client gửi lại |
 

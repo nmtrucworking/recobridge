@@ -45,7 +45,7 @@
 | NFR-05 | Observability | structured logs, metrics và request correlation |
 | NFR-06 | Maintainability | API contract versioned; model artifact/version tách biệt |
 | NFR-07 | Reproducibility | seed, time split, feature list và dependency version được lưu |
-| NFR-08 | Deployability | khởi động qua Docker Compose từ môi trường sạch |
+| NFR-08 | Deployability | khởi động các tiến trình local từ môi trường sạch |
 
 ## 4. Business rules
 

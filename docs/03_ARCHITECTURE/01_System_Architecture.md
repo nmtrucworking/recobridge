@@ -31,7 +31,7 @@ flowchart LR
     A --> R
 ```
 
-## 2. Container architecture MVP
+## 2. Component architecture MVP
 
 ```mermaid
 flowchart TB

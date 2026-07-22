@@ -63,7 +63,7 @@ Mọi response có `model_version` và `strategy_used`.
 
 ## 6. Retraining
 
-MVP: manual batch bằng CLI/job Docker Compose. Scheduled batch là target sau MVP. Trigger target:
+MVP: manual batch bằng CLI local. Scheduled batch là target sau MVP. Trigger target:
 
 - định kỳ;
 - đủ event mới;

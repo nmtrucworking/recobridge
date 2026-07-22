@@ -32,7 +32,7 @@ Liên kết yêu cầu → thiết kế → API/model → test → bằng chứn
 | ML-03 | Có đánh giá coverage/diversity | evaluation report | ML-T03 | TBD |
 | SEC-01 | API được xác thực | bearer/API key nội bộ | SEC-T01 | TBD |
 | SEC-02 | Không lưu raw token/PII trong log | log filter | SEC-T02 | TBD |
-| OPS-01 | Toàn bộ MVP khởi động bằng Docker Compose | compose file | OPS-T01 | TBD |
+| OPS-01 | Toàn bộ MVP khởi động bằng tiến trình local | hướng dẫn khởi động | OPS-T01 | TBD |
 | E2E-01 | Website render recommendation thật và feedback được commit vào PostgreSQL | web → REST API → DB | E2E-T01 | TBD |
 
 ## 2. Quy tắc cập nhật

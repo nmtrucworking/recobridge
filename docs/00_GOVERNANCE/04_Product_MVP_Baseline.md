@@ -16,7 +16,7 @@ RecoBridge MVP là một sản phẩm chạy end-to-end, không phải notebook 
 
 1. chạy ETL và training batch từ Synerise Parquet bằng một lệnh;
 2. sinh model bundle có version và báo cáo metric máy đọc được;
-3. khởi động website demo, Recommendation API và PostgreSQL bằng Docker Compose;
+3. khởi động website demo, Recommendation API và PostgreSQL trực tiếp trên máy local;
 4. gọi API để nhận top-N khác nhau theo user/context, đồng thời có cold-start fallback;
 5. render recommendation trên website và ghi exposure/click/cart/purchase vào PostgreSQL;
 6. chứng minh idempotency, fallback, model version và một lần rollback model;
@@ -97,8 +97,8 @@ Nếu ranker không đạt gate, sản phẩm vẫn chạy bằng baseline tốt
 | Recommendation API | Python 3.12 + FastAPI + Pydantic |
 | ML/data | Polars/PyArrow, scikit-learn, XGBoost, joblib |
 | Database | PostgreSQL 16 |
-| Website demo | FastAPI/Jinja + HTML/CSS/vanilla JavaScript, là client độc lập gọi Recommendation API |
-| Deployment | Docker Compose: `web`, `recommendation-api`, `postgres`; `trainer` là one-shot profile/job |
+| Website demo | Vinext/React hiện có, gọi Recommendation API qua BFF same-origin để không lộ token |
+| Deployment | Tiến trình local: `web`, `recommendation-api`, PostgreSQL; `trainer` là one-shot profile/job |
 | Cache | Không dùng Redis trong MVP; artifact và lookup read-only được nạp vào memory khi startup |
 | Event pipeline | Ghi trực tiếp PostgreSQL trong transaction; batch retraining đọc event từ DB |
 | Broker/outbox | Không thuộc MVP |
@@ -124,7 +124,7 @@ API recommendation không phụ thuộc PostgreSQL trên request path sau khi ar
 | Model Ready | baseline report, cluster report, `metrics.json`, model bundle và checksum |
 | API Ready | OpenAPI contract tests, recommendation/fallback/idempotency tests |
 | Integration Ready | website render top-N và feedback xuất hiện trong PostgreSQL |
-| Operations Ready | clean `docker compose up`, health pass, smoke test và rollback model |
+| Operations Ready | clean local startup, health pass, smoke test và rollback model |
 | Release Verified | traceability matrix trỏ tới test report/log/video theo commit và model version |
 
 Một hạng mục chỉ được đánh dấu hoàn thành khi có file hoặc log bằng chứng trong repo/release bundle. Notebook khám phá, mockup, ảnh JSON nhập tay và flow diagram không thay thế implementation.
@@ -136,7 +136,7 @@ Một hạng mục chỉ được đánh dấu hoàn thành khi có file hoặc 
 3. Implement baselines, K-Means, candidates, XGBRanker và evaluation.
 4. Export bundle rồi implement model loader/recommendation API.
 5. Implement PostgreSQL schema, event idempotency và website demo.
-6. Dockerize, chạy contract/integration/performance/failure tests.
+6. Hoàn thiện cấu hình chạy local, chạy contract/integration/performance/failure tests.
 7. Chỉ sau khi các test pass mới cập nhật slide, video và trạng thái tài liệu.
 
 Không bắt đầu dashboard, Kafka, Redis, Kubernetes, A/B testing hoặc online learning trước khi sáu gate ở mục 6 hoàn tất.

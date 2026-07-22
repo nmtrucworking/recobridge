@@ -13,13 +13,13 @@
 
 ## 1. MVP deployment
 
-Docker Compose gồm:
+Các thành phần chạy trực tiếp trên máy local:
 
-- `web` hoặc BFF demo;
-- `recommendation-api`;
-- `postgres`;
+- `web` hoặc BFF demo bằng Node.js;
+- `recommendation-api` bằng Python;
+- PostgreSQL 16 khi cần lưu event bền vững;
 - batch job/profile để seed/train;
-- volume model artifacts.
+- thư mục model artifacts local.
 
 Redis, broker và outbox không thuộc MVP. API nạp artifact/lookup read-only vào memory khi startup.
 
@@ -31,7 +31,7 @@ Redis, broker và outbox không thuộc MVP. API nạp artifact/lookup read-only
 4. Recommendation API load/warm/readiness pass.
 5. Website/BFF start.
 
-Không chỉ dùng `depends_on`; health check và retry startup cần rõ.
+Mỗi tiến trình phải có health check và retry startup rõ ràng.
 
 ## 3. Environments
 
@@ -57,9 +57,9 @@ Không chỉ dùng `depends_on`; health check và retry startup cần rõ.
 
 ## 6. Demo reliability checklist
 
-- Pre-pull/build images.
+- Cài dependency và build ứng dụng trước buổi demo.
 - Kiểm tra port conflict.
-- Không dùng đường dẫn tuyệt đối Windows trong compose.
+- Dùng đường dẫn tương đối hoặc biến môi trường cho tài nguyên dự án.
 - Seed deterministic.
 - Có script `smoke-test`.
 - Có video dự phòng nhưng vẫn phải chuẩn bị demo live.

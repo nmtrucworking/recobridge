@@ -36,7 +36,7 @@ Website bán hàng có catalog lớn thường dựa vào bestseller, danh mục
 3. Recommendation API trả top-N theo input thực.
 4. Website hiển thị recommendation và gửi feedback.
 5. Có fallback khi model/dependency không sẵn sàng.
-6. Chạy toàn bộ bằng Docker Compose.
+6. Chạy toàn bộ trực tiếp trên máy local.
 
 ## 4. Deliverables
 
@@ -45,7 +45,7 @@ Website bán hàng có catalog lớn thường dựa vào bestseller, danh mục
 | Tài liệu | BRD/SRS rút gọn, kiến trúc, data/ML/API/security/test/runbook |
 | ML | model artifacts, feature schema, evaluation report, baseline comparison |
 | Integration | Recommendation API, event API, website widget/BFF integration |
-| Operations | Docker Compose, health checks, logs, seed/migration |
+| Operations | local process startup, health checks, logs, seed/migration |
 | Demo | kịch bản end-to-end, failure scenario và video/log bằng chứng |
 
 ## 5. Ngoài phạm vi MVP
