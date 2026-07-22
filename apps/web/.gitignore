@@ -1,0 +1,32 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.vinext/
+/out/
+/dist/
+
+# dependencies and local runtime output
+/node_modules/
+/node_modules_*/
+/.wrangler/
+*.log
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
