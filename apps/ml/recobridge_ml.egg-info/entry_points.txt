@@ -1,2 +1,4 @@
 [console_scripts]
 recobridge-preprocess = recobridge_ml.preprocess:main
+recobridge-promote = recobridge_ml.promote:main
+recobridge-train = recobridge_ml.train:main

@@ -4,4 +4,10 @@ Version: 0.1.0
 Summary: RecoBridge data preprocessing and ML pipelines
 Requires-Python: >=3.12
 Requires-Dist: duckdb<2,>=1.4
+Requires-Dist: joblib<2,>=1.4
+Requires-Dist: numpy<3,>=2
+Requires-Dist: pandas<3,>=2.2
 Requires-Dist: pytz>=2025.2
+Requires-Dist: scipy<2,>=1.14
+Requires-Dist: scikit-learn<2,>=1.6
+Requires-Dist: xgboost<4,>=3

@@ -219,6 +219,11 @@ components:
       properties:
         product_id:
           type: string
+        category_id:
+          type: [string, 'null']
+        price_bucket:
+          type: [integer, 'null']
+          minimum: 0
         score:
           type: number
         rank:

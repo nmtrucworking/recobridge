@@ -1,9 +1,12 @@
+import hashlib
+import json
 from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
 
 from recobridge_api.app import create_app
 from recobridge_api.config import Settings
+from recobridge_api.engine import RecommendationEngine
 from recobridge_api.store import MemoryEventStore
 
 
@@ -142,3 +145,53 @@ def test_generated_openapi_keeps_the_documented_surface():
     }
     assert "bearerAuth" in schema["components"]["securitySchemes"]
     assert "security" not in schema["paths"]["/v1/health/live"]["get"]
+
+
+def test_release_bundle_uses_bounded_baseline_candidates_and_recent_buy_filter(tmp_path):
+    bundle = {
+        "model_version": "baseline-category-popular-release-v1",
+        "feature_version": "recobridge-ranking-v1",
+        "strategy_version": "baseline-category-popular-v1",
+        "default_strategy": "category_popular",
+        "ranker_promoted": False,
+        "products": [
+            {"product_id": "1", "category": "7", "popularity": 1.0, "tags": []},
+            {"product_id": "2", "category": "7", "popularity": 0.9, "tags": []},
+            {"product_id": "3", "category": "8", "popularity": 0.8, "tags": []},
+        ],
+        "user_affinities": {"u1": {"7": 1.0}},
+        "recently_bought": {"u1": ["1"]},
+        "rankings": {
+            "recent_top": ["1", "3"],
+            "global_top": ["1", "2", "3"],
+            "category_top": {"7": ["1", "2"]},
+        },
+    }
+    path = tmp_path / "serving_bundle.json"
+    path.write_text(json.dumps(bundle), encoding="utf-8")
+    alias = {
+        "schema_version": "recobridge-production-alias-v1",
+        "path": path.name,
+        "bundle_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }
+    alias_path = tmp_path / "production.json"
+    alias_path.write_text(json.dumps(alias), encoding="utf-8")
+    engine = RecommendationEngine(str(alias_path))
+    app = create_app(
+        settings=Settings(api_token=TOKEN, database_url="memory://"),
+        engine=engine,
+        store=MemoryEventStore(),
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/v1/recommendations",
+            json={**recommendation_payload("u1"), "strategy": "xgboost"},
+            headers=AUTH,
+        )
+
+    assert response.status_code == 200
+    assert engine.resolved_bundle_path == path.resolve()
+    assert response.json()["strategy_used"] == "category_popular"
+    assert response.json()["degraded"] is True
+    assert "1" not in {item["product_id"] for item in response.json()["items"]}

@@ -2,6 +2,8 @@ README.md
 pyproject.toml
 recobridge_ml/__init__.py
 recobridge_ml/preprocess.py
+recobridge_ml/promote.py
+recobridge_ml/train.py
 recobridge_ml.egg-info/PKG-INFO
 recobridge_ml.egg-info/SOURCES.txt
 recobridge_ml.egg-info/dependency_links.txt

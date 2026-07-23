@@ -14,6 +14,8 @@ type Profile = {
 
 type RecommendationItem = {
   product_id: string;
+  category_id?: string | null;
+  price_bucket?: number | null;
   score: number;
   rank: number;
   reason_code: string | null;
@@ -37,18 +39,18 @@ type RankedProduct = Product & {
 const profiles: Profile[] = [
   {
     id: "mai",
-    apiUserId: "u_mai",
+    apiUserId: "10002945",
     short: "MA",
     label: "Mai Anh",
-    taste: "Công nghệ · Phong cách sống",
+    taste: "Hồ sơ hành vi A · Synerise release",
     fallbackIds: ["sku_1048", "sku_2091", "sku_3314", "sku_4172"],
   },
   {
     id: "minh",
-    apiUserId: "u_minh",
+    apiUserId: "10005456",
     short: "MH",
     label: "Minh Hoàng",
-    taste: "Nội thất · Nhiếp ảnh",
+    taste: "Hồ sơ hành vi B · Synerise release",
     fallbackIds: ["sku_5088", "sku_6270", "sku_7331", "sku_8406"],
   },
   {
@@ -69,20 +71,35 @@ const fallbackProducts = (profile: Profile): RankedProduct[] =>
       : [];
   });
 
+const stableIndex = (value: string) =>
+  [...value].reduce((total, character) => total + character.charCodeAt(0), 0) % catalog.length;
+
+const hydrateProduct = (item: RecommendationItem): Product => {
+  const known = catalogById.get(item.product_id);
+  if (known) return known;
+  const visual = catalog[stableIndex(item.product_id)];
+  return {
+    id: item.product_id,
+    name: `SKU Synerise ${item.product_id}`,
+    category: item.category_id ? `Danh mục ${item.category_id}` : "Danh mục chưa xác định",
+    price: 0,
+    priceLabel: item.price_bucket == null ? "Nhóm giá chưa xác định" : `Nhóm giá ${item.price_bucket}`,
+    image: visual.image,
+    accent: visual.accent,
+  };
+};
+
 const hydrateProducts = (response: RecommendationResponse): RankedProduct[] =>
-  response.items.flatMap((item) => {
-    const product = catalogById.get(item.product_id);
-    return product
-      ? [{
-          ...product,
-          score: item.score,
-          reason: reasonLabels[item.reason_code ?? ""] ?? "Được RecoEngine lựa chọn",
-        }]
-      : [];
-  });
+  response.items.map((item) => ({
+    ...hydrateProduct(item),
+    score: item.score,
+    reason: reasonLabels[item.reason_code ?? ""] ?? "Được RecoEngine lựa chọn",
+  }));
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
+
+const displayPrice = (product: Product) => product.priceLabel ?? formatPrice(product.price);
 
 async function postJson<T>(path: string, payload: unknown, signal?: AbortSignal): Promise<T> {
   const response = await fetch(path, {
@@ -220,8 +237,7 @@ export default function Home() {
     postJson<RecommendationResponse>("/api/recommendations/related", { product_id: heroProduct.id, top_k: 3 })
       .then((response) => {
         const related = response.items.flatMap((item) => {
-          const product = catalogById.get(item.product_id);
-          return product ? [product] : [];
+          return [hydrateProduct(item)];
         });
         if (related.length) setRelatedProducts(related);
         notify("Đã làm mới sản phẩm liên quan từ API");
@@ -269,7 +285,7 @@ export default function Home() {
           <div className="visual-label">Chọn riêng cho {profile.label.split(" ")[0]}</div>
           <div className="hero-product-image" style={{ backgroundImage: `url(${heroProduct.image})` }} role="img" aria-label={heroProduct.name} />
           <div className="match-badge"><span>Độ phù hợp</span><strong>{Math.round(heroProduct.score * 100)}%</strong></div>
-          <div className="hero-product-card"><div><span>{heroProduct.category}</span><h2>{heroProduct.name}</h2><p>{formatPrice(heroProduct.price)}</p></div><button onClick={() => addToCart(heroProduct)} aria-label={`Thêm ${heroProduct.name} vào giỏ`}>+</button></div>
+          <div className="hero-product-card"><div><span>{heroProduct.category}</span><h2>{heroProduct.name}</h2><p>{displayPrice(heroProduct)}</p></div><button onClick={() => addToCart(heroProduct)} aria-label={`Thêm ${heroProduct.name} vào giỏ`}>+</button></div>
         </div>
       </section>
 
@@ -301,7 +317,7 @@ export default function Home() {
                 <div className="product-image" style={{ backgroundImage: `url(${product.image})` }} role="img" aria-label={product.name} />
                 <button className="quick-add" onClick={() => addToCart(product)}>Thêm nhanh <span>+</span></button>
               </div>
-              <div className="product-meta"><div><span>{product.category}</span><span>{Math.round(product.score * 100)}% match</span></div><h3>{product.name}</h3><p>{formatPrice(product.price)}</p><small><i /> {product.reason}</small></div>
+              <div className="product-meta"><div><span>{product.category}</span><span>{Math.round(product.score * 100)}% match</span></div><h3>{product.name}</h3><p>{displayPrice(product)}</p><small><i /> {product.reason}</small></div>
             </article>
           ))}
         </div>

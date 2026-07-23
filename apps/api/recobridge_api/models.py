@@ -44,6 +44,8 @@ class RelatedRequest(StrictModel):
 
 class RecommendationItem(StrictModel):
     product_id: str
+    category_id: str | None = None
+    price_bucket: int | None = Field(default=None, ge=0)
     score: float
     rank: int = Field(ge=1)
     reason_code: str | None = None

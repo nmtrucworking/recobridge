@@ -8,9 +8,10 @@ notebook
 pyarrow
 fastparquet
 polars
-scipy
+scipy>=1.14,<2
 tqdm
 joblib
+xgboost>=3,<4
 requests
 duckdb>=1.4,<2
 pytz>=2025.2

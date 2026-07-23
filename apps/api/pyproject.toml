@@ -14,6 +14,9 @@ dependencies = [
   "uvicorn[standard]>=0.35,<1",
 ]
 
+[project.scripts]
+recobridge-api-benchmark = "recobridge_api.benchmark:main"
+
 [project.optional-dependencies]
 test = [
   "httpx>=0.28,<1",

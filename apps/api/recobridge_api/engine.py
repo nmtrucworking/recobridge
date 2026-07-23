@@ -1,3 +1,4 @@
+import hashlib
 import json
 import time
 from dataclasses import dataclass
@@ -16,6 +17,7 @@ from .models import (
 class Product:
     product_id: str
     category: str
+    price_bucket: int | None
     popularity: float
     tags: frozenset[str]
 
@@ -28,6 +30,7 @@ class RecommendationEngine:
     def __init__(self, bundle_path: str | None = None) -> None:
         default_path = Path(__file__).resolve().parents[1] / "data" / "bundle.json"
         self.bundle_path = Path(bundle_path) if bundle_path else default_path
+        self.resolved_bundle_path = self.bundle_path
         self.ready = False
         self.error: str | None = None
         self.model_version = "unavailable"
@@ -35,11 +38,28 @@ class RecommendationEngine:
         self.strategy_version = "unavailable"
         self.products: dict[str, Product] = {}
         self.user_affinities: dict[str, dict[str, float]] = {}
+        self.default_strategy: str | None = None
+        self.ranker_promoted = False
+        self.recently_bought: dict[str, frozenset[str]] = {}
+        self.recent_top: list[str] = []
+        self.global_top: list[str] = []
+        self.category_top: dict[str, list[str]] = {}
         self.load()
 
     def load(self) -> None:
         try:
             raw = json.loads(self.bundle_path.read_text(encoding="utf-8"))
+            if raw.get("schema_version") == "recobridge-production-alias-v1":
+                alias_root = self.bundle_path.resolve().parent
+                resolved = (alias_root / str(raw["path"])).resolve()
+                if alias_root not in resolved.parents:
+                    raise BundleError("production alias resolves outside its model root")
+                expected = str(raw.get("bundle_sha256", ""))
+                actual = hashlib.sha256(resolved.read_bytes()).hexdigest()
+                if not expected or actual != expected:
+                    raise BundleError("production alias bundle checksum mismatch")
+                raw = json.loads(resolved.read_text(encoding="utf-8"))
+                self.resolved_bundle_path = resolved
             required = {"model_version", "feature_version", "strategy_version", "products"}
             missing = required.difference(raw)
             if missing:
@@ -50,6 +70,18 @@ class RecommendationEngine:
                 product = Product(
                     product_id=str(item["product_id"]),
                     category=str(item["category"]),
+                    price_bucket=(
+                        int(item["price_bucket"])
+                        if item.get("price_bucket") is not None
+                        else next(
+                            (
+                                int(str(tag).split(":", 1)[1])
+                                for tag in item.get("tags", [])
+                                if str(tag).startswith("price:")
+                            ),
+                            None,
+                        )
+                    ),
                     popularity=float(item["popularity"]),
                     tags=frozenset(str(tag) for tag in item.get("tags", [])),
                 )
@@ -64,6 +96,21 @@ class RecommendationEngine:
             self.user_affinities = {
                 str(user_id): {str(category): float(weight) for category, weight in weights.items()}
                 for user_id, weights in raw.get("user_affinities", {}).items()
+            }
+            self.default_strategy = (
+                str(raw["default_strategy"]) if raw.get("default_strategy") else None
+            )
+            self.ranker_promoted = bool(raw.get("ranker_promoted", False))
+            self.recently_bought = {
+                str(user_id): frozenset(str(product_id) for product_id in product_ids)
+                for user_id, product_ids in raw.get("recently_bought", {}).items()
+            }
+            rankings = raw.get("rankings", {})
+            self.recent_top = [str(product_id) for product_id in rankings.get("recent_top", [])]
+            self.global_top = [str(product_id) for product_id in rankings.get("global_top", [])]
+            self.category_top = {
+                str(category): [str(product_id) for product_id in product_ids]
+                for category, product_ids in rankings.get("category_top", {}).items()
             }
             self.ready = True
             self.error = None
@@ -89,8 +136,37 @@ class RecommendationEngine:
         use_affinities = personalized and payload.strategy != "popular"
         use_context = payload.strategy in {"hybrid", "xgboost"}
 
+        candidate_products: list[Product]
+        if self.recent_top or self.global_top:
+            candidate_ids: list[str] = []
+
+            def add(values: list[str]) -> None:
+                for product_id in values:
+                    if product_id not in candidate_ids:
+                        candidate_ids.append(product_id)
+
+            add(self.recent_top[:60])
+            if use_affinities:
+                for category, _ in sorted(
+                    (affinities or {}).items(), key=lambda pair: pair[1], reverse=True
+                )[:3]:
+                    add(self.category_top.get(category, [])[:20])
+            if use_context and payload.context.category_id:
+                add(self.category_top.get(payload.context.category_id, [])[:60])
+            add(self.global_top)
+            bought = self.recently_bought.get(payload.user_id or "", frozenset())
+            candidate_products = [
+                self.products[product_id]
+                for product_id in candidate_ids
+                if product_id in self.products
+                and product_id not in bought
+                and (seed is None or product_id != seed.product_id)
+            ][:200]
+        else:
+            candidate_products = list(self.products.values())
+
         ranked: list[tuple[Product, float, str]] = []
-        for product in self.products.values():
+        for product in candidate_products:
             if seed and product.product_id == seed.product_id:
                 continue
             score = product.popularity * 0.55
@@ -115,6 +191,8 @@ class RecommendationEngine:
         items = [
             RecommendationItem(
                 product_id=product.product_id,
+                category_id=product.category,
+                price_bucket=product.price_bucket,
                 score=round(score, 4),
                 rank=index,
                 reason_code=reason,
@@ -124,6 +202,10 @@ class RecommendationEngine:
         latency_ms = max(1, round((time.perf_counter() - started) * 1000))
         if not personalized:
             strategy_used = "recent_popular"
+        elif payload.strategy == "xgboost" and not self.ranker_promoted:
+            strategy_used = self.default_strategy or "baseline_hybrid"
+        elif self.default_strategy:
+            strategy_used = self.default_strategy
         elif payload.strategy == "xgboost":
             strategy_used = "baseline_hybrid"
         else:
@@ -133,7 +215,7 @@ class RecommendationEngine:
             model_version=self.model_version,
             feature_version=self.feature_version,
             strategy_used=strategy_used,
-            degraded=not personalized or payload.strategy == "xgboost",
+            degraded=not personalized or (payload.strategy == "xgboost" and not self.ranker_promoted),
             items=items,
             latency_ms=latency_ms,
         )
@@ -144,8 +226,28 @@ class RecommendationEngine:
         seed = self.products.get(payload.product_id)
         degraded = seed is None
 
+        if self.category_top or self.global_top:
+            candidate_ids: list[str] = []
+            if seed:
+                candidate_ids.extend(self.category_top.get(seed.category, []))
+            candidate_ids.extend(self.recent_top)
+            candidate_ids.extend(self.global_top)
+            seen: set[str] = set()
+            candidate_products = []
+            for product_id in candidate_ids:
+                if product_id == payload.product_id or product_id in seen:
+                    continue
+                seen.add(product_id)
+                product = self.products.get(product_id)
+                if product is not None:
+                    candidate_products.append(product)
+                if len(candidate_products) == 200:
+                    break
+        else:
+            candidate_products = list(self.products.values())
+
         ranked: list[tuple[Product, float, str]] = []
-        for product in self.products.values():
+        for product in candidate_products:
             if product.product_id == payload.product_id:
                 continue
             score = product.popularity * 0.4
@@ -164,6 +266,8 @@ class RecommendationEngine:
         items = [
             RecommendationItem(
                 product_id=product.product_id,
+                category_id=product.category,
+                price_bucket=product.price_bucket,
                 score=round(score, 4),
                 rank=index,
                 reason_code=reason,

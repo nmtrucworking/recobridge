@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0] — 2026-07-24
+
+### Added
+
+- Implemented leakage-aware K-Means, hybrid candidate generation, XGBRanker training, bootstrap evaluation, versioned checksums and release decisions.
+- Added a bounded baseline serving bundle, checksum-protected production alias, rollback alias handling and full FastAPI request-path benchmark.
+- Added experimental quantized-embedding retrieval behind an explicit flag and an ablation test path.
+
+### Validation
+
+- Release cohort: 20,000 users; XGBRanker test NDCG@10 = 0.033462 and candidate Recall@200 = 0.064998.
+- The ranker remains unpromoted because Recall@200 is below 0.70; `category_popular` is released as the governed fallback.
+- Production fallback p95 = 6.069 ms over 1,000 ASGI requests, below the 200 ms gate.
+- 15 ML/API tests pass; production alias checksum and release bundle loading pass.
+
 ## [1.2.0] — 2026-07-22
 
 ### Added
