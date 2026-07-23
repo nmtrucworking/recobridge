@@ -969,9 +969,9 @@ def train(settings: Settings) -> dict[str, Any]:
         model = XGBRanker(
             objective="rank:ndcg",
             eval_metric="ndcg@10",
-            n_estimators=220,
-            learning_rate=0.05,
-            max_depth=6,
+            n_estimators=150,
+            learning_rate=0.06,
+            max_depth=4,
             min_child_weight=5,
             subsample=0.8,
             colsample_bytree=0.8,
