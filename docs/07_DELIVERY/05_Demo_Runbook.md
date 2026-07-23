@@ -3,9 +3,9 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | **Mã tài liệu** | `DEL-05` |
-| **Phiên bản** | `1.0.0` |
-| **Ngày cập nhật** | `2026-07-18` |
-| **Trạng thái** | Baseline thiết kế |
+| **Phiên bản** | `1.1.0` |
+| **Ngày cập nhật** | `2026-07-24` |
+| **Trạng thái** | Đã xác minh local |
 | **Chủ sở hữu** | Nhóm dự án RecoBridge |
 
 > **Quy ước:** Nội dung ghi **MVP** là phạm vi phải demo. Nội dung ghi **Target** là kiến trúc định hướng, không được trình bày như chức năng đã hiện thực nếu chưa có bằng chứng chạy thực tế.
@@ -20,6 +20,17 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 ```
 
 ## 2. Chuẩn bị
+
+Khởi động và kiểm tra tự động:
+
+```powershell
+.\scripts\start-demo.ps1
+.\scripts\smoke-demo.ps1
+```
+
+Kết quả kỳ vọng: API/BFF `ok`, profile `10002945` và `10005456` có top-N khác
+nhau, anonymous dùng `recent_popular`, model version bắt đầu bằng
+`baseline-category_popular-`.
 
 - clone release tag;
 - `.env` hợp lệ;
@@ -56,6 +67,11 @@ Synerise sample → feature/model artifact → REST API → website widget → f
 - metrics report/model manifest
 
 ## 5. Rollback demo
+
+`recobridge-promote` tự giữ alias đang chạy thành `production.previous.json`
+trước khi thay production. API kiểm tra checksum và từ chối alias/bundle sai.
+Trong buổi demo, không sửa nội dung bundle; chỉ đổi biến
+`RECOBRIDGE_MODEL_BUNDLE_PATH` giữa hai alias đã xác minh rồi khởi động lại API.
 
 Nếu UI lỗi, dùng Swagger/curl/Postman nhưng vẫn phải chứng minh DB/log. Nếu model candidate lỗi, chuyển last-known-good và ghi rõ. Video dự phòng không thay thế việc hiểu hệ thống.
 

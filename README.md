@@ -5,10 +5,29 @@ a FastAPI recommendation service, and durable PostgreSQL event ingestion.
 
 ## Run locally
 
+For the presentation environment, start the verified release alias and web BFF
+with one command:
+
+```powershell
+.\scripts\start-demo.ps1
+.\scripts\smoke-demo.ps1
+# after the demo
+.\scripts\stop-demo.ps1
+```
+
+The demo uses two real release-cohort users (`10002945`, `10005456`) and the
+checksum-protected `apps/ml/artifacts/models/release/production.json`. The
+production strategy is the strongest governed baseline (`category_popular`);
+the XGBRanker remains a candidate because Recall@200 did not pass its fixed
+promotion gate.
+
+Manual component startup:
+
 ```powershell
 # Terminal 1: Recommendation API (Python >= 3.12)
 python -m pip install -e ".\apps\api[test]"
 $env:RECOBRIDGE_API_TOKEN="recobridge-demo-token"
+$env:RECOBRIDGE_MODEL_BUNDLE_PATH="$PWD\apps\ml\artifacts\models\release\production.json"
 python -m uvicorn recobridge_api.app:app --app-dir apps/api --reload --port 8000
 
 # Terminal 2: web application (Node.js >= 22.13.0)
@@ -42,3 +61,5 @@ npm test
 ```
 
 See `apps/api/README.md` and `apps/web/README.md` for component-specific setup.
+The presentation evidence and exact metric interpretation are recorded in
+`docs/07_DELIVERY/08_Release_Evidence.md`.

@@ -16,6 +16,7 @@
 | Ranker promotion | BLOCKED — release Recall@200 = 0.064998, below the fixed 0.70 gate |
 | Governed production fallback | PASS — strongest validation baseline `category_popular` published via checksum-protected `production.json` |
 | API performance | PASS — p95 = 6.069 ms over 1,000 ASGI requests; threshold = 200 ms |
+| Presentation deck | PASS — 9 slides rendered from the final PPTX; no canvas overflow detected |
 
 ## Known limitations
 
