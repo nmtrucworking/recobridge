@@ -63,3 +63,17 @@ npm test
 See `apps/api/README.md` and `apps/web/README.md` for component-specific setup.
 The presentation evidence and exact metric interpretation are recorded in
 `docs/07_DELIVERY/08_Release_Evidence.md`.
+
+## Export the complete product/user dataset
+
+Build the cross-compatible release dataset after preprocessing and training:
+
+```powershell
+$env:PYTHONPATH="apps/ml"
+python -m recobridge_ml.export_dataset --profile release
+```
+
+The generated `apps/ml/artifacts/datasets/release/` package contains the complete
+product catalog, cohort user profiles, canonical interactions, the API serving
+bundle, and a checksum/integrity manifest. See `apps/ml/DATASET.md` for its schema
+and loading contract.

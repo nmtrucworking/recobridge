@@ -22,6 +22,7 @@ dependencies = [
 recobridge-preprocess = "recobridge_ml.preprocess:main"
 recobridge-train = "recobridge_ml.train:main"
 recobridge-promote = "recobridge_ml.promote:main"
+recobridge-export-dataset = "recobridge_ml.export_dataset:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
