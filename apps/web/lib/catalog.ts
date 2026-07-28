@@ -21,7 +21,7 @@ export type Product = {
   accent: string;
   popularity: number;
   visualCode?: string;
-  metadataSource?: "curated" | "anonymized-dataset";
+  metadataSource?: "curated" | "synthetic-presentation";
 };
 
 export type RankedProduct = Product & {
@@ -47,18 +47,63 @@ export const reasonLabels: Record<string, string> = {
   RECENT_POPULAR: "Được quan tâm nhiều gần đây",
 };
 
-const visualPalette = ["#d9f34a", "#ffb38f", "#9bc8ff", "#f6c8dc", "#f3c867", "#a8b7ff", "#b8e5bd"];
+const presentationTemplates = [
+  {
+    category: "Âm thanh · minh hoạ",
+    productLabel: "Tai nghe",
+    image: "/products/studio-headphones.png",
+    accent: "#d9f34a",
+  },
+  {
+    category: "Chuyển động · minh hoạ",
+    productLabel: "Giày",
+    image: "/products/studio-sneaker.png",
+    accent: "#ff8a66",
+  },
+  {
+    category: "Không gian sống · minh hoạ",
+    productLabel: "Ghế",
+    image: "/products/studio-lounge.png",
+    accent: "#f3c867",
+  },
+  {
+    category: "Hành trình · minh hoạ",
+    productLabel: "Bộ hành trình",
+    image: "/products/studio-travel.png",
+    accent: "#9bc8ff",
+  },
+] as const;
 
-const stableIndex = (value: string, length: number) =>
-  [...value].reduce((total, character) => total + character.charCodeAt(0), 0) % length;
+const presentationNames = [
+  "Vela", "Nori", "Drift", "Sora", "Noma", "Luma", "Arco", "Miro",
+  "Kumo", "Nara", "Aster", "Nova", "Pico", "Lento", "Halo", "Runa",
+] as const;
+const presentationEditions = ["One", "Air", "Studio", "Wave", "Flow", "Pace", "Cloud", "Field"] as const;
+
+const stableIndex = (value: string, length: number) => {
+  let hash = 2166136261;
+  for (const character of value) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) % length;
+};
+
+const presentationTemplateFor = (categoryId: string) =>
+  presentationTemplates[stableIndex(categoryId, presentationTemplates.length)];
 
 export const categoryDisplayName = (categoryId?: string | null) => {
   if (!categoryId) return "Nhóm chưa xác định";
-  return categoryLabels[categoryId] ?? `Nhóm sở thích #${categoryId}`;
+  return categoryLabels[categoryId] ?? presentationTemplateFor(categoryId).category;
 };
 
-export const priceBucketDisplayName = (priceBucket?: number | null) =>
-  priceBucket == null ? "Giá đang cập nhật" : `Phân khúc giá #${priceBucket}`;
+export const priceBucketDisplayName = (priceBucket?: number | null) => {
+  if (priceBucket == null) return "Phân khúc đang cập nhật";
+  if (priceBucket < 25) return "Phân khúc tiết kiệm";
+  if (priceBucket < 50) return "Phân khúc phổ thông";
+  if (priceBucket < 75) return "Phân khúc cao cấp";
+  return "Phân khúc tuyển chọn";
+};
 
 export function hydrateProduct(item: {
   product_id: string;
@@ -69,17 +114,20 @@ export function hydrateProduct(item: {
   if (known) return known;
 
   const categoryId = item.category_id ?? "other";
+  const template = presentationTemplateFor(categoryId);
+  const name = presentationNames[stableIndex(item.product_id, presentationNames.length)];
+  const edition = presentationEditions[stableIndex(`${item.product_id}:edition`, presentationEditions.length)];
   return {
     id: item.product_id,
-    name: `Lựa chọn #${item.product_id.replace(/^sku[_-]?/i, "")}`,
+    name: `${template.productLabel} ${name} ${edition}`,
     categoryId,
-    category: categoryDisplayName(categoryId),
+    category: template.category,
     price: 0,
     priceLabel: priceBucketDisplayName(item.price_bucket),
-    accent: visualPalette[stableIndex(item.product_id, visualPalette.length)],
+    image: template.image,
+    accent: template.accent,
     popularity: 0,
-    visualCode: `#${categoryId}`,
-    metadataSource: "anonymized-dataset",
+    metadataSource: "synthetic-presentation",
   };
 }
 

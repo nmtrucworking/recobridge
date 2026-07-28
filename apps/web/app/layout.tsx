@@ -29,13 +29,13 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "vi_VN",
       url: origin,
-      images: [{ url: `${origin}/og.png`, width: 1200, height: 630, alt: "RecoBridge — Gu của bạn, được hiểu đúng." }],
+      images: [{ url: `${origin}/og-catalog.png`, width: 1200, height: 630, alt: "RecoBridge — Gợi ý đúng gu." }],
     },
     twitter: {
       card: "summary_large_image",
       title: "RecoBridge — Gu của bạn, được hiểu đúng.",
       description: "Kết nối dữ liệu, cá nhân hóa lựa chọn.",
-      images: [`${origin}/og.png`],
+      images: [`${origin}/og-catalog.png`],
     },
   };
 }

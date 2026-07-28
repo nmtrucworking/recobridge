@@ -530,7 +530,7 @@ export default function Home() {
             <p>{profile.apiUserId
               ? "Được xếp hạng từ hành vi gần đây, sở thích và ngữ cảnh hiện tại của bạn."
               : "Chưa có lịch sử? Không sao — đây là những lựa chọn đang được yêu thích."}</p>
-            <small className="dataset-disclosure">Metadata release đã ẩn danh: mã lựa chọn, nhóm sở thích và phân khúc giá được giữ nguyên từ dataset.</small>
+            <small className="dataset-disclosure">Tên, bộ sưu tập và ảnh là lớp trình bày minh hoạ; thứ hạng vẫn dùng ID, nhóm ẩn danh và price bucket gốc từ model.</small>
           </div>
           <details className="api-receipt">
             <summary><span className={`pulse ${receipt.degraded ? "degraded" : ""}`} /> {strategyLabel} <span aria-hidden="true">⌄</span></summary>

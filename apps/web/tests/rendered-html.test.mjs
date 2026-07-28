@@ -42,11 +42,11 @@ test("ships product metadata and removes starter preview code", async () => {
   assert.match(page, /baseline_session_adaptive|session_feedback/);
   assert.match(page, /Đang xếp hạng lại từ tín hiệu mới/);
   assert.match(page, /Candidate · chưa promote/);
-  assert.match(page, /Metadata release đã ẩn danh/);
-  assert.match(layout, /og\.png/);
+  assert.match(page, /lớp trình bày minh hoạ/);
+  assert.match(layout, /og-catalog\.png/);
   assert.match(layout, /locale: "vi_VN"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
-  await access(new URL("../public/og.png", import.meta.url));
+  await access(new URL("../public/og-catalog.png", import.meta.url));
   await assert.rejects(access(new URL("../app/_sites-preview", import.meta.url)));
 });
 
@@ -71,7 +71,15 @@ test("keeps storefront content configurable and interactive state device-local",
   assert.ok(storefront.products.length >= storefront.experience.recommendationLimit);
   assert.ok(storefront.profiles.every((profile) => Array.isArray(profile.preferredCategories)));
   assert.match(catalogModule, /fallbackProducts|preferredCategories/);
-  assert.match(catalogModule, /SESSION_CATEGORY_AFFINITY|anonymized-dataset/);
+  assert.match(catalogModule, /SESSION_CATEGORY_AFFINITY|synthetic-presentation/);
+  assert.match(catalogModule, /studio-headphones\.png|studio-sneaker\.png/);
+  assert.doesNotMatch(catalogModule, /Lựa chọn #|Nhóm sở thích #|Phân khúc giá #/);
+  await Promise.all([
+    "studio-headphones.png",
+    "studio-sneaker.png",
+    "studio-lounge.png",
+    "studio-travel.png",
+  ].map((name) => access(new URL(`../public/products/${name}`, import.meta.url))));
   assert.ok(storefront.profiles.slice(0, 2).every((profile) => profile.description.includes("#")));
   assert.doesNotMatch(page, /fallbackIds|useState\(2\)|device_type:\s*"desktop"/);
   assert.match(page, /localStorage|role="dialog"|mobile-navigation|Tìm sản phẩm/);
