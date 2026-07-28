@@ -1,80 +1,39 @@
+import storefront from "./storefront.json";
+
+export type Profile = {
+  id: string;
+  apiUserId: string | null;
+  initials: string;
+  label: string;
+  firstName: string;
+  description: string;
+  preferredCategories: string[];
+};
+
 export type Product = {
   id: string;
   name: string;
+  categoryId: string;
   category: string;
   price: number;
   priceLabel?: string;
-  image: string;
+  image?: string;
   accent: string;
+  popularity: number;
 };
 
-export const catalog: Product[] = [
-  {
-    id: "sku_1048",
-    name: "Tai nghe Drift One",
-    category: "Âm thanh",
-    price: 2490000,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=88",
-    accent: "#d9f34a",
-  },
-  {
-    id: "sku_2091",
-    name: "Giày Noma Pace",
-    category: "Sneakers",
-    price: 1890000,
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=88",
-    accent: "#ff6d48",
-  },
-  {
-    id: "sku_3314",
-    name: "Đồng hồ Arc Mini",
-    category: "Phụ kiện",
-    price: 3290000,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=88",
-    accent: "#9bc8ff",
-  },
-  {
-    id: "sku_4172",
-    name: "Kính mát Sora",
-    category: "Phụ kiện",
-    price: 890000,
-    image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=1200&q=88",
-    accent: "#f6c8dc",
-  },
-  {
-    id: "sku_5088",
-    name: "Ghế lounge Lento",
-    category: "Nội thất",
-    price: 4590000,
-    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=1200&q=88",
-    accent: "#f3c867",
-  },
-  {
-    id: "sku_6270",
-    name: "Máy ảnh Miro 35",
-    category: "Nhiếp ảnh",
-    price: 7890000,
-    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=88",
-    accent: "#a8b7ff",
-  },
-  {
-    id: "sku_7331",
-    name: "Chậu cây Kumo",
-    category: "Trang trí",
-    price: 690000,
-    image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=88",
-    accent: "#b8e5bd",
-  },
-  {
-    id: "sku_8406",
-    name: "Balo Field Note",
-    category: "Du lịch",
-    price: 1590000,
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1200&q=88",
-    accent: "#f3ad92",
-  },
-];
+export type RankedProduct = Product & {
+  score: number;
+  reason: string;
+};
 
+export const experience = storefront.experience;
+export const categoryLabels: Record<string, string> = storefront.categories;
+export const profiles: Profile[] = storefront.profiles;
+export const catalog: Product[] = storefront.products.map((product) => ({
+  ...product,
+  category: categoryLabels[product.categoryId] ?? product.categoryId,
+}));
 export const catalogById = new Map(catalog.map((product) => [product.id, product]));
 
 export const reasonLabels: Record<string, string> = {
@@ -82,5 +41,61 @@ export const reasonLabels: Record<string, string> = {
   CONTEXT_CATEGORY_MATCH: "Phù hợp với danh mục bạn đang xem",
   ITEM_SIMILARITY: "Tương tự sản phẩm bạn quan tâm",
   SAME_CATEGORY: "Cùng danh mục với sản phẩm gốc",
-  RECENT_POPULAR: "Phổ biến trong 14 ngày qua",
+  RECENT_POPULAR: "Được quan tâm nhiều gần đây",
 };
+
+const visualPalette = ["#d9f34a", "#ffb38f", "#9bc8ff", "#f6c8dc", "#f3c867", "#a8b7ff", "#b8e5bd"];
+
+const stableIndex = (value: string, length: number) =>
+  [...value].reduce((total, character) => total + character.charCodeAt(0), 0) % length;
+
+export function hydrateProduct(item: {
+  product_id: string;
+  category_id?: string | null;
+  price_bucket?: number | null;
+}): Product {
+  const known = catalogById.get(item.product_id);
+  if (known) return known;
+
+  const categoryId = item.category_id ?? "other";
+  return {
+    id: item.product_id,
+    name: `Sản phẩm ${item.product_id.replace(/^sku[_-]?/i, "#")}`,
+    categoryId,
+    category: categoryLabels[categoryId] ?? `Danh mục ${categoryId}`,
+    price: 0,
+    priceLabel: item.price_bucket == null ? "Giá đang cập nhật" : `Nhóm giá ${item.price_bucket}`,
+    accent: visualPalette[stableIndex(item.product_id, visualPalette.length)],
+    popularity: 0,
+  };
+}
+
+export function fallbackProducts(profile: Profile, limit = experience.recommendationLimit): RankedProduct[] {
+  return [...catalog]
+    .sort((left, right) => {
+      const leftPreference = profile.preferredCategories.indexOf(left.categoryId);
+      const rightPreference = profile.preferredCategories.indexOf(right.categoryId);
+      const leftRank = leftPreference < 0 ? Number.MAX_SAFE_INTEGER : leftPreference;
+      const rightRank = rightPreference < 0 ? Number.MAX_SAFE_INTEGER : rightPreference;
+      return leftRank - rightRank || right.popularity - left.popularity;
+    })
+    .slice(0, limit)
+    .map((product, index) => ({
+      ...product,
+      score: Math.max(0.68, 0.9 - index * 0.05),
+      reason: profile.preferredCategories.includes(product.categoryId)
+        ? "Phù hợp với nhóm sở thích của bạn"
+        : "Được quan tâm nhiều gần đây",
+    }));
+}
+
+export function fallbackRelated(seed: Product, limit = experience.relatedLimit): Product[] {
+  return [...catalog]
+    .filter((product) => product.id !== seed.id)
+    .sort((left, right) => {
+      const leftSameCategory = Number(left.categoryId === seed.categoryId);
+      const rightSameCategory = Number(right.categoryId === seed.categoryId);
+      return rightSameCategory - leftSameCategory || right.popularity - left.popularity;
+    })
+    .slice(0, limit);
+}

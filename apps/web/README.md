@@ -29,6 +29,12 @@ This starter does not use `wrangler.jsonc`.
 - `POST /api/events/feedback` records click/cart actions.
 - `GET /api/health` reports the backend readiness state.
 
+Storefront copy, demo profiles, recommendation limits, category labels, and
+product presentation metadata live in `lib/storefront.json`. UI logic derives
+fallback ranking from the configured category preferences instead of embedding
+SKU lists in the page component. Cart, saved products, and the selected profile
+are kept locally on the visitor's device.
+
 ## Workspace Auth Headers
 
 OpenAI workspace sites can read the current user's email from

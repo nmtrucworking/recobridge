@@ -54,3 +54,19 @@ test("keeps the backend token behind same-origin BFF routes", async () => {
   assert.match(proxy, /Authorization/);
   assert.doesNotMatch(page, /RECOMMENDATION_API_TOKEN|Authorization:\s*`Bearer/);
 });
+
+test("keeps storefront content configurable and interactive state device-local", async () => {
+  const [page, catalogModule, storefrontConfig] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/catalog.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/storefront.json", import.meta.url), "utf8"),
+  ]);
+  const storefront = JSON.parse(storefrontConfig);
+
+  assert.ok(storefront.profiles.length >= 3);
+  assert.ok(storefront.products.length >= storefront.experience.recommendationLimit);
+  assert.ok(storefront.profiles.every((profile) => Array.isArray(profile.preferredCategories)));
+  assert.match(catalogModule, /fallbackProducts|preferredCategories/);
+  assert.doesNotMatch(page, /fallbackIds|useState\(2\)|device_type:\s*"desktop"/);
+  assert.match(page, /localStorage|role="dialog"|mobile-navigation|Tìm sản phẩm/);
+});
