@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   catalog,
+  categoryDisplayName,
   experience,
   fallbackProducts,
   fallbackRelated,
@@ -28,6 +29,10 @@ type RecommendationResponse = {
   feature_version: string;
   strategy_used: string;
   degraded: boolean;
+  ranker_promoted: boolean;
+  personalization_source: "session_feedback" | "historical_category_affinity" | "recent_popular" | "item_context";
+  session_signal_count: number;
+  dominant_category_id: string | null;
   items: RecommendationItem[];
   latency_ms: number;
 };
@@ -36,6 +41,12 @@ type EngineStatus = "checking" | "ready" | "degraded" | "offline";
 type OpenPanel = "search" | "cart" | null;
 type CartLine = { product: Product; quantity: number };
 type CartState = Record<string, CartLine>;
+type FeedbackType = "click" | "add_to_cart" | "remove_from_cart";
+type AdaptationState = {
+  message: string;
+  newProductIds: string[];
+  signalCount: number;
+};
 
 const STORAGE_KEY = "recobridge-preferences-v1";
 const emptyReceipt = {
@@ -44,6 +55,18 @@ const emptyReceipt = {
   latency: 0,
   request: null as string | null,
   degraded: false,
+  rankerPromoted: false,
+  personalizationSource: "recent_popular" as RecommendationResponse["personalization_source"],
+  sessionSignalCount: 0,
+  dominantCategoryId: null as string | null,
+};
+
+const strategyLabels: Record<string, string> = {
+  baseline_session_adaptive: "Baseline thích nghi trong phiên",
+  category_popular: "Baseline theo lịch sử danh mục",
+  baseline_hybrid: "Baseline kết hợp",
+  recent_popular: "Gợi ý theo xu hướng",
+  item_similarity: "Tương đồng sản phẩm",
 };
 
 const formatPrice = (price: number) =>
@@ -84,7 +107,7 @@ function ProductVisual({ product, className }: { product: Product; className: st
       role="img"
       aria-label={product.name}
     >
-      {!product.image && <span aria-hidden="true">{product.category.slice(0, 2).toUpperCase()}</span>}
+      {!product.image && <span aria-hidden="true">{product.visualCode ?? product.category.slice(0, 2).toUpperCase()}</span>}
     </div>
   );
 }
@@ -101,6 +124,8 @@ export default function Home() {
   const [engineStatus, setEngineStatus] = useState<EngineStatus>("checking");
   const [isLoading, setIsLoading] = useState(true);
   const [relatedLoading, setRelatedLoading] = useState(false);
+  const [isAdapting, setIsAdapting] = useState(false);
+  const [adaptation, setAdaptation] = useState<AdaptationState | null>(null);
   const [receipt, setReceipt] = useState(emptyReceipt);
   const [openPanel, setOpenPanel] = useState<OpenPanel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -135,10 +160,10 @@ export default function Home() {
     toastTimer.current = window.setTimeout(() => setToast(""), 2600);
   }, []);
 
-  const getSessionId = () => {
+  const getSessionId = useCallback(() => {
     if (!sessionId.current) sessionId.current = `web-${crypto.randomUUID()}`;
     return sessionId.current;
-  };
+  }, []);
 
   useEffect(() => {
     let savedProfileId: string | undefined;
@@ -208,6 +233,10 @@ export default function Home() {
           latency: response.latency_ms,
           request: response.request_id,
           degraded: response.degraded,
+          rankerPromoted: response.ranker_promoted,
+          personalizationSource: response.personalization_source,
+          sessionSignalCount: response.session_signal_count,
+          dominantCategoryId: response.dominant_category_id,
         });
         setEngineStatus(response.degraded ? "degraded" : "ready");
         setRelatedProducts(fallbackRelated(hydrated[0]));
@@ -224,7 +253,12 @@ export default function Home() {
         const fallback = fallbackProducts(profile);
         setProducts(fallback);
         setRelatedProducts(fallbackRelated(fallback[0]));
-        setReceipt({ strategy: "Gợi ý dự phòng", model: "Không khả dụng", latency: 0, request: null, degraded: true });
+        setReceipt({
+          ...emptyReceipt,
+          strategy: "Gợi ý dự phòng",
+          model: "Không khả dụng",
+          degraded: true,
+        });
         setEngineStatus("offline");
         notify("Không thể tải dữ liệu mới. Bạn vẫn có thể xem các gợi ý đã chuẩn bị sẵn.");
       })
@@ -233,7 +267,7 @@ export default function Home() {
       });
 
     return () => controller.abort();
-  }, [profile, notify]);
+  }, [profile, notify, getSessionId]);
 
   useEffect(() => {
     if (!receipt.request || !products.length || isLoading) return;
@@ -249,7 +283,7 @@ export default function Home() {
       }).catch(() => undefined);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [isLoading, products, profile.apiUserId, receipt.request]);
+  }, [isLoading, products, profile.apiUserId, receipt.request, getSessionId]);
 
   useEffect(() => {
     if (!openPanel) return;
@@ -274,22 +308,82 @@ export default function Home() {
     if (toastTimer.current) window.clearTimeout(toastTimer.current);
   }, []);
 
-  const trackFeedback = (product: Product, eventType: "click" | "add_to_cart") => {
-    if (!receipt.request) return;
-    void postJson("/api/events/feedback", {
-      request_id: receipt.request,
-      user_id: profile.apiUserId,
-      session_id: getSessionId(),
-      product_id: product.id,
-      event_type: eventType,
-      occurred_at: new Date().toISOString(),
-    }).catch(() => undefined);
+  const trackFeedback = async (product: Product, eventType: FeedbackType) => {
+    if (!receipt.request || isAdapting) return;
+    setIsAdapting(true);
+    try {
+      await postJson("/api/events/feedback", {
+        request_id: receipt.request,
+        user_id: profile.apiUserId,
+        session_id: getSessionId(),
+        product_id: product.id,
+        event_type: eventType,
+        occurred_at: new Date().toISOString(),
+      });
+      const response = await postJson<RecommendationResponse>("/api/recommendations", {
+        user_id: profile.apiUserId,
+        session_id: getSessionId(),
+        context: { page_type: "home", device_type: getDeviceType() },
+        top_k: experience.recommendationLimit,
+        strategy: experience.strategy,
+      });
+      const previousIds = new Set(products.map((item) => item.id));
+      const hydrated = response.items.map((item) => ({
+        ...hydrateProduct(item),
+        score: item.score,
+        reason: reasonLabels[item.reason_code ?? ""] ?? "Được RecoEngine lựa chọn",
+      }));
+      if (!hydrated.length) throw new Error("empty adapted recommendations");
+
+      setProducts(hydrated);
+      setReceipt({
+        strategy: response.strategy_used,
+        model: response.model_version,
+        latency: response.latency_ms,
+        request: response.request_id,
+        degraded: response.degraded,
+        rankerPromoted: response.ranker_promoted,
+        personalizationSource: response.personalization_source,
+        sessionSignalCount: response.session_signal_count,
+        dominantCategoryId: response.dominant_category_id,
+      });
+      setEngineStatus(response.degraded ? "degraded" : "ready");
+      const newProductIds = hydrated.filter((item) => !previousIds.has(item.id)).map((item) => item.id);
+      const signalLabel = eventType === "add_to_cart"
+        ? "thêm vào giỏ"
+        : eventType === "remove_from_cart"
+          ? "bỏ khỏi giỏ"
+          : "lưu sản phẩm";
+      setAdaptation({
+        message: `${signalLabel}: ${product.name} · ${categoryDisplayName(response.dominant_category_id ?? product.categoryId)}`,
+        newProductIds,
+        signalCount: response.session_signal_count,
+      });
+      setRelatedProducts(fallbackRelated(hydrated[0]));
+      void postJson<RecommendationResponse>("/api/recommendations/related", {
+        product_id: hydrated[0].id,
+        top_k: experience.relatedLimit,
+      }).then((related) => {
+        const next = related.items.map(hydrateProduct);
+        if (next.length) setRelatedProducts(next);
+      }).catch(() => undefined);
+      notify(
+        response.personalization_source === "session_feedback"
+          ? `Đã cập nhật ${newProductIds.length} lựa chọn từ tín hiệu mới.`
+          : "Đã ghi nhận tín hiệu; sản phẩm này chưa có metadata trong model hiện tại.",
+      );
+    } catch {
+      notify("Đã lưu thao tác trên thiết bị, nhưng chưa thể xếp hạng lại lúc này.");
+    } finally {
+      setIsAdapting(false);
+    }
   };
 
   const selectProfile = (profileId: string) => {
     if (profileId === activeId) return;
     setIsLoading(true);
     setReceipt((current) => ({ ...current, strategy: "Đang cập nhật", request: null }));
+    setAdaptation(null);
     setActiveId(profileId);
   };
 
@@ -298,24 +392,28 @@ export default function Home() {
       ...current,
       [product.id]: { product, quantity: (current[product.id]?.quantity ?? 0) + 1 },
     }));
-    trackFeedback(product, "add_to_cart");
+    void trackFeedback(product, "add_to_cart");
     notify(`Đã thêm ${product.name} vào giỏ hàng.`);
   };
 
   const updateQuantity = (productId: string, nextQuantity: number) => {
+    const removedProduct = nextQuantity <= 0 ? cart[productId]?.product : undefined;
     setCart((current) => {
       const next = { ...current };
       if (nextQuantity <= 0) delete next[productId];
       else if (next[productId]) next[productId] = { ...next[productId], quantity: nextQuantity };
       return next;
     });
+    if (removedProduct) void trackFeedback(removedProduct, "remove_from_cart");
   };
 
   const toggleLike = (product: Product) => {
-    setLiked((items) => items.includes(product.id)
+    const isRemoving = liked.includes(product.id);
+    setLiked((items) => isRemoving
       ? items.filter((item) => item !== product.id)
       : [...items, product.id]);
-    trackFeedback(product, "click");
+    if (isRemoving) notify(`Đã bỏ lưu ${product.name}.`);
+    else void trackFeedback(product, "click");
   };
 
   const refreshRelated = () => {
@@ -333,15 +431,25 @@ export default function Home() {
       .finally(() => setRelatedLoading(false));
   };
 
+  const strategyLabel = strategyLabels[receipt.strategy] ?? receipt.strategy;
+  const personalizationModeLabel = receipt.personalizationSource === "session_feedback"
+    ? "Theo tín hiệu phiên"
+    : receipt.personalizationSource === "historical_category_affinity"
+      ? "Theo lịch sử danh mục"
+      : "Theo xu hướng";
   const statusLabel = isLoading
     ? "Đang chuẩn bị gợi ý"
-    : engineStatus === "ready"
-      ? "Cá nhân hóa đang hoạt động"
-      : engineStatus === "degraded"
-        ? "Đang dùng gợi ý phổ biến"
-        : engineStatus === "offline"
-          ? "Đang dùng gợi ý đã lưu"
-          : "Đang kết nối";
+    : isAdapting
+      ? "Đang xếp hạng lại từ tín hiệu mới"
+      : engineStatus === "ready" && receipt.personalizationSource === "session_feedback"
+        ? "Baseline đang thích nghi trong phiên"
+        : engineStatus === "ready"
+          ? "Baseline theo lịch sử danh mục"
+          : engineStatus === "degraded"
+            ? "Đang dùng gợi ý theo xu hướng"
+            : engineStatus === "offline"
+              ? "Đang dùng gợi ý đã lưu"
+              : "Đang kết nối";
 
   const closeNavigation = () => setMenuOpen(false);
 
@@ -380,7 +488,7 @@ export default function Home() {
           <div className="hero-proof" aria-label="Tóm tắt phiên gợi ý">
             <div><strong>{products.length}</strong><span>lựa chọn phù hợp</span></div>
             <div><strong>{receipt.latency ? `${receipt.latency}ms` : "Sẵn sàng"}</strong><span>thời gian phản hồi</span></div>
-            <div><strong>{profile.apiUserId ? "Cá nhân" : "Xu hướng"}</strong><span>chế độ gợi ý</span></div>
+            <div><strong>{personalizationModeLabel}</strong><span>nguồn xếp hạng</span></div>
           </div>
         </div>
         <div className="hero-visual" id="discover" style={{ "--accent": heroProduct.accent } as React.CSSProperties}>
@@ -390,7 +498,7 @@ export default function Home() {
           <div className="match-badge"><span>Độ phù hợp</span><strong>{Math.round(heroProduct.score * 100)}%</strong></div>
           <div className="hero-product-card">
             <div><span>{heroProduct.category}</span><h2>{heroProduct.name}</h2><p>{displayPrice(heroProduct)}</p></div>
-            <button onClick={() => addToCart(heroProduct)} aria-label={`Thêm ${heroProduct.name} vào giỏ`}>+</button>
+            <button disabled={isAdapting} onClick={() => addToCart(heroProduct)} aria-label={`Thêm ${heroProduct.name} vào giỏ`}>+</button>
           </div>
         </div>
       </section>
@@ -422,25 +530,36 @@ export default function Home() {
             <p>{profile.apiUserId
               ? "Được xếp hạng từ hành vi gần đây, sở thích và ngữ cảnh hiện tại của bạn."
               : "Chưa có lịch sử? Không sao — đây là những lựa chọn đang được yêu thích."}</p>
+            <small className="dataset-disclosure">Metadata release đã ẩn danh: mã lựa chọn, nhóm sở thích và phân khúc giá được giữ nguyên từ dataset.</small>
           </div>
           <details className="api-receipt">
-            <summary><span className={`pulse ${receipt.degraded ? "degraded" : ""}`} /> Chi tiết phiên gợi ý <span aria-hidden="true">⌄</span></summary>
+            <summary><span className={`pulse ${receipt.degraded ? "degraded" : ""}`} /> {strategyLabel} <span aria-hidden="true">⌄</span></summary>
             <dl>
-              <div><dt>Chiến lược</dt><dd>{receipt.strategy}</dd></div>
+              <div><dt>Ranker</dt><dd>{receipt.rankerPromoted ? "Đang phục vụ" : "Candidate · chưa promote"}</dd></div>
+              <div><dt>Tín hiệu phiên</dt><dd>{receipt.sessionSignalCount}</dd></div>
               <div><dt>Độ trễ</dt><dd>{receipt.latency ? `${receipt.latency} ms` : "—"}</dd></div>
               <div><dt>Mã yêu cầu</dt><dd title={receipt.request ?? undefined}>{receipt.request ?? "Chưa có"}</dd></div>
             </dl>
           </details>
         </div>
         {isLoading && <div className="loading-line" role="status"><span /> Đang cập nhật danh sách cho {profile.label}…</div>}
-        <div className={`product-grid${isLoading ? " is-loading" : ""}`}>
+        {isAdapting && <div className="loading-line adapting" role="status"><span /> Đang dùng tín hiệu mới để xếp hạng lại…</div>}
+        {adaptation && !isAdapting && (
+          <div className="adaptation-receipt" role="status">
+            <div><span>Vòng lặp đã hoàn tất</span><strong>RecoBridge vừa học từ thao tác của bạn</strong></div>
+            <p>{adaptation.message}</p>
+            <small>{adaptation.signalCount} tín hiệu trong phiên · {adaptation.newProductIds.length} lựa chọn mới</small>
+          </div>
+        )}
+        <div className={`product-grid${isLoading || isAdapting ? " is-loading" : ""}`}>
           {products.map((product, index) => (
-            <article className="product-card" key={`${profile.id}-${product.id}`}>
+            <article className={`product-card${adaptation?.newProductIds.includes(product.id) ? " freshly-ranked" : ""}`} key={`${profile.id}-${product.id}`}>
               <div className="product-image-wrap" style={{ "--card-accent": product.accent } as React.CSSProperties}>
                 <span className="rank">{String(index + 1).padStart(2, "0")}</span>
-                <button className={liked.includes(product.id) ? "like active" : "like"} onClick={() => toggleLike(product)} aria-pressed={liked.includes(product.id)} aria-label={liked.includes(product.id) ? `Bỏ lưu ${product.name}` : `Lưu ${product.name}`}>{liked.includes(product.id) ? "♥" : "♡"}</button>
+                {adaptation?.newProductIds.includes(product.id) && <span className="fresh-label">Mới theo tín hiệu</span>}
+                <button disabled={isAdapting} className={liked.includes(product.id) ? "like active" : "like"} onClick={() => toggleLike(product)} aria-pressed={liked.includes(product.id)} aria-label={liked.includes(product.id) ? `Bỏ lưu ${product.name}` : `Lưu ${product.name}`}>{liked.includes(product.id) ? "♥" : "♡"}</button>
                 <ProductVisual className="product-image" product={product} />
-                <button className="quick-add" onClick={() => addToCart(product)}>Thêm vào giỏ <span>+</span></button>
+                <button disabled={isAdapting} className="quick-add" onClick={() => addToCart(product)}>Thêm vào giỏ <span>+</span></button>
               </div>
               <div className="product-meta">
                 <div><span>{product.category}</span><span>{Math.round(product.score * 100)}% phù hợp</span></div>
@@ -453,8 +572,8 @@ export default function Home() {
 
       <section className="explain-section" id="how-it-works">
         <div className="explain-card">
-          <div className="explain-copy"><div className="eyebrow light"><span>03</span> Minh bạch từ đầu</div><h2>Mỗi gợi ý đều có<br />một lý do.</h2><p>RecoBridge không chỉ trả về sản phẩm. Mỗi danh sách đi kèm chiến lược, phiên bản mô hình và mã lý do để trải nghiệm dễ hiểu, dễ kiểm chứng.</p><a href="#recommendations">Xem lại danh sách của bạn →</a></div>
-          <div className="signal-flow" aria-label="Luồng tạo gợi ý"><div className="signal active"><span>01</span><div><strong>Tín hiệu</strong><small>click · giỏ hàng · mua</small></div></div><div className="connector"><i /></div><div className="signal"><span>02</span><div><strong>RecoEngine</strong><small>candidate · ranking · filter</small></div></div><div className="connector"><i /></div><div className="signal"><span>03</span><div><strong>Gợi ý</strong><small>cá nhân hóa · dự phòng</small></div></div></div>
+          <div className="explain-copy"><div className="eyebrow light"><span>03</span> Minh bạch từ đầu</div><h2>Mỗi gợi ý đều có<br />một lý do.</h2><p>Production hiện dùng baseline theo danh mục và có thể thích nghi trong phiên. XGBRanker vẫn là candidate, chưa tham gia serving cho tới khi vượt promotion gate.</p><a href="#recommendations">Xem lại danh sách của bạn →</a></div>
+          <div className="signal-flow" aria-label="Luồng tạo gợi ý"><div className="signal active"><span>01</span><div><strong>Tín hiệu</strong><small>lưu · giỏ hàng · bỏ khỏi giỏ</small></div></div><div className={`connector${adaptation ? " active" : ""}`}><i /></div><div className={`signal${adaptation ? " active" : ""}`}><span>02</span><div><strong>Baseline phiên</strong><small>hồ sơ tạm · re-rank · filter</small></div></div><div className={`connector${adaptation ? " active" : ""}`}><i /></div><div className={`signal${adaptation ? " active" : ""}`}><span>03</span><div><strong>Danh sách mới</strong><small>lý do · thay đổi · truy vết</small></div></div></div>
         </div>
       </section>
 

@@ -234,7 +234,7 @@ components:
     RecommendationResponse:
       type: object
       additionalProperties: false
-      required: [request_id, model_version, feature_version, strategy_used, degraded, items, latency_ms]
+      required: [request_id, model_version, feature_version, strategy_used, degraded, ranker_promoted, personalization_source, session_signal_count, items, latency_ms]
       properties:
         request_id:
           type: string
@@ -246,6 +246,17 @@ components:
           type: string
         degraded:
           type: boolean
+        ranker_promoted:
+          type: boolean
+          description: True only when the trained ranker is approved and serving.
+        personalization_source:
+          type: string
+          enum: [session_feedback, historical_category_affinity, recent_popular, item_context]
+        session_signal_count:
+          type: integer
+          minimum: 0
+        dominant_category_id:
+          type: [string, 'null']
         items:
           type: array
           uniqueItems: true

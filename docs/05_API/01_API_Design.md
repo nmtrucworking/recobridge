@@ -44,16 +44,24 @@
 ```json
 {
   "request_id": "01J...",
-  "model_version": "xgb-2026-07-18.1",
-  "feature_version": "fv1",
-  "strategy_used": "hybrid",
+  "model_version": "baseline-category_popular-xgb-20260724-release-v2",
+  "feature_version": "recobridge-ranking-v1",
+  "strategy_used": "baseline_session_adaptive",
   "degraded": false,
+  "ranker_promoted": false,
+  "personalization_source": "session_feedback",
+  "session_signal_count": 2,
+  "dominant_category_id": "4092",
   "items": [
-    {"product_id": "sku_10", "score": 0.91, "rank": 1, "reason_code": "CLUSTER_AFFINITY"}
+    {"product_id": "1068914", "category_id": "4092", "price_bucket": 92, "score": 0.91, "rank": 1, "reason_code": "SESSION_CATEGORY_AFFINITY"}
   ],
   "latency_ms": 47
 }
 ```
+
+`ranker_promoted=false` có nghĩa XGBRanker vẫn là candidate. `baseline_session_adaptive`
+là baseline được re-rank bằng tín hiệu tạm thời trong phiên, không phải online training
+hay XGBoost inference.
 
 ## 4. Error contract
 

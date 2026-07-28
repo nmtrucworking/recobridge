@@ -180,7 +180,10 @@ def create_app(
         idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     ):
         key = require_idempotency_key(idempotency_key)
-        return write_event("feedback", key, payload.model_dump(mode="json"))
+        result = write_event("feedback", key, payload.model_dump(mode="json"))
+        if not result.duplicate:
+            recommendation_engine.record_feedback(payload)
+        return result
 
     @api.get("/v1/health/live", response_model=HealthResponse)
     async def liveness():

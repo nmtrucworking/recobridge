@@ -20,6 +20,8 @@ export type Product = {
   image?: string;
   accent: string;
   popularity: number;
+  visualCode?: string;
+  metadataSource?: "curated" | "anonymized-dataset";
 };
 
 export type RankedProduct = Product & {
@@ -37,6 +39,7 @@ export const catalog: Product[] = storefront.products.map((product) => ({
 export const catalogById = new Map(catalog.map((product) => [product.id, product]));
 
 export const reasonLabels: Record<string, string> = {
+  SESSION_CATEGORY_AFFINITY: "Mới xếp hạng lại từ tín hiệu bạn vừa gửi",
   USER_CATEGORY_AFFINITY: "Hợp với sở thích gần đây của bạn",
   CONTEXT_CATEGORY_MATCH: "Phù hợp với danh mục bạn đang xem",
   ITEM_SIMILARITY: "Tương tự sản phẩm bạn quan tâm",
@@ -49,6 +52,14 @@ const visualPalette = ["#d9f34a", "#ffb38f", "#9bc8ff", "#f6c8dc", "#f3c867", "#
 const stableIndex = (value: string, length: number) =>
   [...value].reduce((total, character) => total + character.charCodeAt(0), 0) % length;
 
+export const categoryDisplayName = (categoryId?: string | null) => {
+  if (!categoryId) return "Nhóm chưa xác định";
+  return categoryLabels[categoryId] ?? `Nhóm sở thích #${categoryId}`;
+};
+
+export const priceBucketDisplayName = (priceBucket?: number | null) =>
+  priceBucket == null ? "Giá đang cập nhật" : `Phân khúc giá #${priceBucket}`;
+
 export function hydrateProduct(item: {
   product_id: string;
   category_id?: string | null;
@@ -60,13 +71,15 @@ export function hydrateProduct(item: {
   const categoryId = item.category_id ?? "other";
   return {
     id: item.product_id,
-    name: `Sản phẩm ${item.product_id.replace(/^sku[_-]?/i, "#")}`,
+    name: `Lựa chọn #${item.product_id.replace(/^sku[_-]?/i, "")}`,
     categoryId,
-    category: categoryLabels[categoryId] ?? `Danh mục ${categoryId}`,
+    category: categoryDisplayName(categoryId),
     price: 0,
-    priceLabel: item.price_bucket == null ? "Giá đang cập nhật" : `Nhóm giá ${item.price_bucket}`,
+    priceLabel: priceBucketDisplayName(item.price_bucket),
     accent: visualPalette[stableIndex(item.product_id, visualPalette.length)],
     popularity: 0,
+    visualCode: `#${categoryId}`,
+    metadataSource: "anonymized-dataset",
   };
 }
 

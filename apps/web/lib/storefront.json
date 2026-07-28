@@ -22,8 +22,8 @@
       "initials": "MA",
       "label": "Mai Anh",
       "firstName": "Mai",
-      "description": "Ưu tiên âm thanh, giày dép và phụ kiện",
-      "preferredCategories": ["audio", "sneakers", "accessories", "travel"]
+      "description": "Lịch sử nổi bật ở nhóm sở thích #3326",
+      "preferredCategories": ["3326"]
     },
     {
       "id": "minh",
@@ -31,8 +31,8 @@
       "initials": "MH",
       "label": "Minh Hoàng",
       "firstName": "Minh",
-      "description": "Quan tâm nội thất, nhiếp ảnh và du lịch",
-      "preferredCategories": ["furniture", "camera", "decor", "travel"]
+      "description": "Lịch sử nổi bật ở nhóm sở thích #4092",
+      "preferredCategories": ["4092"]
     },
     {
       "id": "guest",
