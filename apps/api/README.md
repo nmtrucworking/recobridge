@@ -15,6 +15,14 @@ Without `RECOBRIDGE_DATABASE_URL`, the service uses an isolated in-memory event
 store for local development. For durable exposure and feedback ingestion, run
 PostgreSQL 16 locally and set `RECOBRIDGE_DATABASE_URL` before starting the API.
 
+New feedback also updates a bounded in-memory preference profile keyed by
+`(user_id, session_id)`. A subsequent recommendation request in the same session
+uses `baseline_session_adaptive`, excludes already acted-on items, and returns
+`SESSION_CATEGORY_AFFINITY` reasons. This is session re-ranking, not online model
+training; durable events remain the input to the next offline training run.
+When candidates exist, the top-N reserves one representative for the dominant
+session category so a new signal is visible without saturating every score.
+
 ## Load production model alias
 
 The API accepts either a direct serving bundle or the checksum-protected

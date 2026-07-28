@@ -1,11 +1,15 @@
 import hashlib
 import json
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Lock
 from typing import Any
 
 from .models import (
+    EventType,
+    FeedbackEvent,
     RecommendationItem,
     RecommendationRequest,
     RecommendationResponse,
@@ -26,7 +30,23 @@ class BundleError(RuntimeError):
     pass
 
 
+@dataclass
+class SessionProfile:
+    category_weights: dict[str, float]
+    interacted_products: set[str]
+    signal_count: int = 0
+    dominant_category: str | None = None
+
+
 class RecommendationEngine:
+    _MAX_SESSION_PROFILES = 10_000
+    _FEEDBACK_WEIGHTS = {
+        EventType.CLICK: 0.7,
+        EventType.ADD_TO_CART: 1.0,
+        EventType.REMOVE_FROM_CART: -0.8,
+        EventType.PURCHASE: 1.5,
+    }
+
     def __init__(self, bundle_path: str | None = None) -> None:
         default_path = Path(__file__).resolve().parents[1] / "data" / "bundle.json"
         self.bundle_path = Path(bundle_path) if bundle_path else default_path
@@ -44,6 +64,8 @@ class RecommendationEngine:
         self.recent_top: list[str] = []
         self.global_top: list[str] = []
         self.category_top: dict[str, list[str]] = {}
+        self._session_profiles: OrderedDict[tuple[str, str], SessionProfile] = OrderedDict()
+        self._session_lock = Lock()
         self.load()
 
     def load(self) -> None:
@@ -127,11 +149,76 @@ class RecommendationEngine:
         union = left | right
         return len(left & right) / len(union) if union else 0.0
 
+    @staticmethod
+    def _session_key(user_id: str | None, session_id: str) -> tuple[str, str]:
+        return (user_id or "anonymous", session_id)
+
+    def record_feedback(self, payload: FeedbackEvent) -> dict[str, Any]:
+        """Update the bounded, in-memory preference profile for one browsing session."""
+        product = self.products.get(payload.product_id)
+        if product is None:
+            return {"accepted": False, "reason": "unknown_product"}
+
+        key = self._session_key(payload.user_id, payload.session_id)
+        weight = self._FEEDBACK_WEIGHTS[payload.event_type]
+        with self._session_lock:
+            profile = self._session_profiles.get(key)
+            if profile is None:
+                profile = SessionProfile(category_weights={}, interacted_products=set())
+                self._session_profiles[key] = profile
+            else:
+                self._session_profiles.move_to_end(key)
+
+            next_weight = max(0.0, profile.category_weights.get(product.category, 0.0) + weight)
+            if next_weight:
+                profile.category_weights[product.category] = next_weight
+            else:
+                profile.category_weights.pop(product.category, None)
+
+            if weight > 0:
+                profile.interacted_products.add(product.product_id)
+            elif payload.event_type == EventType.REMOVE_FROM_CART:
+                profile.interacted_products.discard(product.product_id)
+
+            profile.signal_count += 1
+            profile.dominant_category = max(
+                profile.category_weights,
+                key=profile.category_weights.get,
+                default=None,
+            )
+            while len(self._session_profiles) > self._MAX_SESSION_PROFILES:
+                self._session_profiles.popitem(last=False)
+
+            return {
+                "accepted": True,
+                "signal_count": profile.signal_count,
+                "dominant_category_id": profile.dominant_category,
+            }
+
+    def _session_snapshot(
+        self, user_id: str | None, session_id: str
+    ) -> tuple[dict[str, float], frozenset[str], int, str | None]:
+        key = self._session_key(user_id, session_id)
+        with self._session_lock:
+            profile = self._session_profiles.get(key)
+            if profile is None:
+                return {}, frozenset(), 0, None
+            self._session_profiles.move_to_end(key)
+            return (
+                dict(profile.category_weights),
+                frozenset(profile.interacted_products),
+                profile.signal_count,
+                profile.dominant_category,
+            )
+
     def recommend(self, payload: RecommendationRequest, request_id: str) -> RecommendationResponse:
         started = time.perf_counter()
         self._ensure_ready()
-        affinities = self.user_affinities.get(payload.user_id or "")
-        personalized = bool(affinities)
+        affinities = self.user_affinities.get(payload.user_id or "", {})
+        session_affinities, session_products, session_signal_count, dominant_category = (
+            self._session_snapshot(payload.user_id, payload.session_id)
+        )
+        personalized = bool(affinities or session_affinities)
         seed = self.products.get(payload.context.product_id or "")
         use_affinities = personalized and payload.strategy != "popular"
         use_context = payload.strategy in {"hybrid", "xgboost"}
@@ -148,7 +235,11 @@ class RecommendationEngine:
             add(self.recent_top[:60])
             if use_affinities:
                 for category, _ in sorted(
-                    (affinities or {}).items(), key=lambda pair: pair[1], reverse=True
+                    session_affinities.items(), key=lambda pair: pair[1], reverse=True
+                )[:3]:
+                    add(self.category_top.get(category, [])[:40])
+                for category, _ in sorted(
+                    affinities.items(), key=lambda pair: pair[1], reverse=True
                 )[:3]:
                     add(self.category_top.get(category, [])[:20])
             if use_context and payload.context.category_id:
@@ -160,11 +251,20 @@ class RecommendationEngine:
                 for product_id in candidate_ids
                 if product_id in self.products
                 and product_id not in bought
+                and product_id not in session_products
                 and (seed is None or product_id != seed.product_id)
             ][:200]
         else:
-            candidate_products = list(self.products.values())
+            bought = self.recently_bought.get(payload.user_id or "", frozenset())
+            candidate_products = [
+                product
+                for product in self.products.values()
+                if product.product_id not in bought
+                and product.product_id not in session_products
+                and (seed is None or product.product_id != seed.product_id)
+            ]
 
+        maximum_session_affinity = max(session_affinities.values(), default=1.0)
         ranked: list[tuple[Product, float, str]] = []
         for product in candidate_products:
             if seed and product.product_id == seed.product_id:
@@ -172,10 +272,18 @@ class RecommendationEngine:
             score = product.popularity * 0.55
             reason = "RECENT_POPULAR"
 
-            affinity = (affinities or {}).get(product.category, 0.0) if use_affinities else 0.0
+            affinity = affinities.get(product.category, 0.0) if use_affinities else 0.0
             if affinity:
                 score += affinity * 0.35
                 reason = "USER_CATEGORY_AFFINITY"
+            session_affinity = (
+                session_affinities.get(product.category, 0.0) / maximum_session_affinity
+                if use_affinities
+                else 0.0
+            )
+            if session_affinity:
+                score += session_affinity * 0.32
+                reason = "SESSION_CATEGORY_AFFINITY"
             if use_context and payload.context.category_id and product.category == payload.context.category_id:
                 score += 0.2
                 reason = "CONTEXT_CATEGORY_MATCH"
@@ -188,6 +296,22 @@ class RecommendationEngine:
             ranked.append((product, min(score, 0.99), reason))
 
         ranked.sort(key=lambda row: (-row[1], row[0].product_id))
+        selected = ranked[: payload.top_k]
+        if dominant_category and not any(
+            product.category == dominant_category for product, _, _ in selected
+        ):
+            selected_ids = {product.product_id for product, _, _ in selected}
+            session_representative = next(
+                (
+                    row
+                    for row in ranked
+                    if row[0].category == dominant_category
+                    and row[0].product_id not in selected_ids
+                ),
+                None,
+            )
+            if session_representative is not None and selected:
+                selected[-1] = session_representative
         items = [
             RecommendationItem(
                 product_id=product.product_id,
@@ -197,25 +321,37 @@ class RecommendationEngine:
                 rank=index,
                 reason_code=reason,
             )
-            for index, (product, score, reason) in enumerate(ranked[: payload.top_k], start=1)
+            for index, (product, score, reason) in enumerate(selected, start=1)
         ]
         latency_ms = max(1, round((time.perf_counter() - started) * 1000))
-        if not personalized:
+        if session_affinities:
+            strategy_used = "baseline_session_adaptive"
+            personalization_source = "session_feedback"
+        elif not personalized:
             strategy_used = "recent_popular"
+            personalization_source = "recent_popular"
         elif payload.strategy == "xgboost" and not self.ranker_promoted:
             strategy_used = self.default_strategy or "baseline_hybrid"
+            personalization_source = "historical_category_affinity"
         elif self.default_strategy:
             strategy_used = self.default_strategy
+            personalization_source = "historical_category_affinity"
         elif payload.strategy == "xgboost":
             strategy_used = "baseline_hybrid"
+            personalization_source = "historical_category_affinity"
         else:
             strategy_used = payload.strategy
+            personalization_source = "historical_category_affinity"
         return RecommendationResponse(
             request_id=request_id,
             model_version=self.model_version,
             feature_version=self.feature_version,
             strategy_used=strategy_used,
             degraded=not personalized or (payload.strategy == "xgboost" and not self.ranker_promoted),
+            ranker_promoted=self.ranker_promoted,
+            personalization_source=personalization_source,
+            session_signal_count=session_signal_count,
+            dominant_category_id=dominant_category,
             items=items,
             latency_ms=latency_ms,
         )
@@ -280,6 +416,8 @@ class RecommendationEngine:
             feature_version=self.feature_version,
             strategy_used="item_similarity" if seed else "recent_popular",
             degraded=degraded,
+            ranker_promoted=self.ranker_promoted,
+            personalization_source="item_context" if seed else "recent_popular",
             items=items,
             latency_ms=max(1, round((time.perf_counter() - started) * 1000)),
         )

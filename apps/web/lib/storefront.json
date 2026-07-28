@@ -1,0 +1,121 @@
+{
+  "experience": {
+    "defaultProfileId": "mai",
+    "recommendationLimit": 4,
+    "relatedLimit": 3,
+    "strategy": "hybrid",
+    "widgetId": "homepage-top-n"
+  },
+  "categories": {
+    "audio": "Âm thanh",
+    "sneakers": "Giày dép",
+    "accessories": "Phụ kiện",
+    "furniture": "Nội thất",
+    "camera": "Nhiếp ảnh",
+    "decor": "Trang trí",
+    "travel": "Du lịch"
+  },
+  "profiles": [
+    {
+      "id": "mai",
+      "apiUserId": "10002945",
+      "initials": "MA",
+      "label": "Mai Anh",
+      "firstName": "Mai",
+      "description": "Lịch sử nổi bật ở nhóm sở thích #3326",
+      "preferredCategories": ["3326"]
+    },
+    {
+      "id": "minh",
+      "apiUserId": "10005456",
+      "initials": "MH",
+      "label": "Minh Hoàng",
+      "firstName": "Minh",
+      "description": "Lịch sử nổi bật ở nhóm sở thích #4092",
+      "preferredCategories": ["4092"]
+    },
+    {
+      "id": "guest",
+      "apiUserId": null,
+      "initials": "AN",
+      "label": "Khách mới",
+      "firstName": "bạn",
+      "description": "Khám phá theo xu hướng đang được yêu thích",
+      "preferredCategories": []
+    }
+  ],
+  "products": [
+    {
+      "id": "sku_1048",
+      "name": "Tai nghe Drift One",
+      "categoryId": "audio",
+      "price": 2490000,
+      "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#d9f34a",
+      "popularity": 0.92
+    },
+    {
+      "id": "sku_2091",
+      "name": "Giày Noma Pace",
+      "categoryId": "sneakers",
+      "price": 1890000,
+      "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#ff6d48",
+      "popularity": 0.98
+    },
+    {
+      "id": "sku_3314",
+      "name": "Đồng hồ Arc Mini",
+      "categoryId": "accessories",
+      "price": 3290000,
+      "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#9bc8ff",
+      "popularity": 0.81
+    },
+    {
+      "id": "sku_4172",
+      "name": "Kính mát Sora",
+      "categoryId": "accessories",
+      "price": 890000,
+      "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#f6c8dc",
+      "popularity": 0.73
+    },
+    {
+      "id": "sku_5088",
+      "name": "Ghế lounge Lento",
+      "categoryId": "furniture",
+      "price": 4590000,
+      "image": "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#f3c867",
+      "popularity": 0.76
+    },
+    {
+      "id": "sku_6270",
+      "name": "Máy ảnh Miro 35",
+      "categoryId": "camera",
+      "price": 7890000,
+      "image": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#a8b7ff",
+      "popularity": 0.84
+    },
+    {
+      "id": "sku_7331",
+      "name": "Chậu cây Kumo",
+      "categoryId": "decor",
+      "price": 690000,
+      "image": "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#b8e5bd",
+      "popularity": 0.88
+    },
+    {
+      "id": "sku_8406",
+      "name": "Balo Field Note",
+      "categoryId": "travel",
+      "price": 1590000,
+      "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1200&q=88",
+      "accent": "#f3ad92",
+      "popularity": 0.79
+    }
+  ]
+}

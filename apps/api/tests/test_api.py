@@ -108,6 +108,72 @@ def test_feedback_idempotency_and_conflict():
     assert conflict.json()["error"]["code"] == "IDEMPOTENCY_CONFLICT"
 
 
+def test_feedback_updates_session_profile_and_reranks_immediately():
+    session_id = "session-adaptive"
+    payload = {**recommendation_payload("u_mai"), "session_id": session_id}
+    event = {
+        **feedback_payload("sku_3314"),
+        "session_id": session_id,
+        "event_type": "click",
+    }
+    with make_client() as client:
+        before = client.post("/v1/recommendations", json=payload, headers=AUTH)
+        feedback = client.post(
+            "/v1/events/feedback",
+            json=event,
+            headers={**AUTH, "Idempotency-Key": "adaptive-feedback-001"},
+        )
+        after = client.post("/v1/recommendations", json=payload, headers=AUTH)
+
+    assert before.status_code == feedback.status_code == after.status_code == 200
+    body = after.json()
+    assert body["strategy_used"] == "baseline_session_adaptive"
+    assert body["personalization_source"] == "session_feedback"
+    assert body["session_signal_count"] == 1
+    assert body["dominant_category_id"] == "accessories"
+    assert body["items"][0]["reason_code"] == "SESSION_CATEGORY_AFFINITY"
+    assert body["items"][0]["product_id"] == "sku_4172"
+    assert "sku_3314" not in {item["product_id"] for item in body["items"]}
+
+
+def test_duplicate_feedback_does_not_double_count_session_signal():
+    payload = feedback_payload("sku_3314")
+    headers = {**AUTH, "Idempotency-Key": "adaptive-duplicate-001"}
+    with make_client() as client:
+        client.post("/v1/events/feedback", json=payload, headers=headers)
+        client.post("/v1/events/feedback", json=payload, headers=headers)
+        response = client.post("/v1/recommendations", json=recommendation_payload(), headers=AUTH)
+
+    assert response.json()["session_signal_count"] == 1
+
+
+def test_session_signal_gets_a_visible_representative_in_top_n():
+    session_id = "session-visible-signal"
+    request = {
+        **recommendation_payload("u_minh"),
+        "session_id": session_id,
+        "top_k": 1,
+    }
+    event = {
+        **feedback_payload("sku_3314"),
+        "user_id": "u_minh",
+        "session_id": session_id,
+        "event_type": "click",
+    }
+    with make_client() as client:
+        before = client.post("/v1/recommendations", json=request, headers=AUTH)
+        client.post(
+            "/v1/events/feedback",
+            json=event,
+            headers={**AUTH, "Idempotency-Key": "visible-signal-001"},
+        )
+        after = client.post("/v1/recommendations", json=request, headers=AUTH)
+
+    assert before.json()["items"][0]["product_id"] != "sku_4172"
+    assert after.json()["items"][0]["product_id"] == "sku_4172"
+    assert after.json()["items"][0]["reason_code"] == "SESSION_CATEGORY_AFFINITY"
+
+
 def test_exposure_and_health_endpoints():
     payload = {
         "request_id": "request-test",

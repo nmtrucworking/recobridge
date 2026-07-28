@@ -57,6 +57,10 @@ class RecommendationResponse(StrictModel):
     feature_version: str
     strategy_used: str
     degraded: bool
+    ranker_promoted: bool = False
+    personalization_source: str = "recent_popular"
+    session_signal_count: int = Field(default=0, ge=0)
+    dominant_category_id: str | None = None
     items: list[RecommendationItem]
     latency_ms: int = Field(ge=0)
 

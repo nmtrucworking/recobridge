@@ -67,6 +67,8 @@ sequenceDiagram
 sequenceDiagram
     participant W as Website
     participant E as Event API
+    participant S as Session profile
+    participant R as Recommendation API
     participant DB as PostgreSQL
 
     W->>E: POST /v1/events/feedback + Idempotency-Key
@@ -74,8 +76,19 @@ sequenceDiagram
     E->>DB: INSERT event ON CONFLICT DO NOTHING
     E->>DB: COMMIT
     DB-->>E: inserted or duplicate
+    E->>S: update category affinity if newly inserted
     E-->>W: 200 committed / duplicate flag
+    W->>R: POST recommendations with same session_id
+    R->>S: read bounded in-memory session signals
+    R-->>W: re-ranked baseline + reason codes + session signal count
 ```
+
+Session profile chỉ phục vụ phản hồi tức thời và không bền vững qua restart. Event trong
+PostgreSQL vẫn là nguồn dữ liệu bền vững cho lần training tiếp theo. Duplicate feedback
+không được áp dụng lần hai vào session profile.
+Khi candidate phù hợp tồn tại, top-N giữ một vị trí đại diện cho nhóm tín hiệu
+chi phối của phiên; đây là post-ranking guardrail có thể truy vết, không phải
+XGBoost inference.
 
 ## 4. Failure sequence
 

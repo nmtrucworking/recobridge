@@ -20,7 +20,7 @@ foreach ($Url in @($DemoProcesses.api_url, $DemoProcesses.web_url)) {
 foreach ($ProcessId in ($ProcessIds | Sort-Object -Unique)) {
     $Process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
     if ($null -ne $Process) {
-        Stop-Process -Id $ProcessId
+        Stop-Process -Id $ProcessId -ErrorAction SilentlyContinue
     }
 }
 Write-Host "RecoBridge demo processes stopped."

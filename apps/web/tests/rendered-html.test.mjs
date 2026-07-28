@@ -39,6 +39,10 @@ test("ships product metadata and removes starter preview code", async () => {
   assert.match(page, /\/api\/recommendations/);
   assert.match(page, /\/api\/events\/exposure/);
   assert.match(page, /\/api\/events\/feedback/);
+  assert.match(page, /baseline_session_adaptive|session_feedback/);
+  assert.match(page, /Đang xếp hạng lại từ tín hiệu mới/);
+  assert.match(page, /Candidate · chưa promote/);
+  assert.match(page, /Metadata release đã ẩn danh/);
   assert.match(layout, /og\.png/);
   assert.match(layout, /locale: "vi_VN"/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
@@ -53,4 +57,22 @@ test("keeps the backend token behind same-origin BFF routes", async () => {
   assert.match(proxy, /RECOMMENDATION_API_TOKEN/);
   assert.match(proxy, /Authorization/);
   assert.doesNotMatch(page, /RECOMMENDATION_API_TOKEN|Authorization:\s*`Bearer/);
+});
+
+test("keeps storefront content configurable and interactive state device-local", async () => {
+  const [page, catalogModule, storefrontConfig] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../lib/catalog.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/storefront.json", import.meta.url), "utf8"),
+  ]);
+  const storefront = JSON.parse(storefrontConfig);
+
+  assert.ok(storefront.profiles.length >= 3);
+  assert.ok(storefront.products.length >= storefront.experience.recommendationLimit);
+  assert.ok(storefront.profiles.every((profile) => Array.isArray(profile.preferredCategories)));
+  assert.match(catalogModule, /fallbackProducts|preferredCategories/);
+  assert.match(catalogModule, /SESSION_CATEGORY_AFFINITY|anonymized-dataset/);
+  assert.ok(storefront.profiles.slice(0, 2).every((profile) => profile.description.includes("#")));
+  assert.doesNotMatch(page, /fallbackIds|useState\(2\)|device_type:\s*"desktop"/);
+  assert.match(page, /localStorage|role="dialog"|mobile-navigation|Tìm sản phẩm/);
 });

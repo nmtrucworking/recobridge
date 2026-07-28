@@ -26,8 +26,21 @@ This starter does not use `wrangler.jsonc`.
 - `POST /api/recommendations` loads profile-specific top-N items.
 - `POST /api/recommendations/related` refreshes related items.
 - `POST /api/events/exposure` records rendered recommendations.
-- `POST /api/events/feedback` records click/cart actions.
+- `POST /api/events/feedback` records click/cart actions and updates the bounded
+  session preference profile; the storefront then requests an immediate baseline re-rank.
 - `GET /api/health` reports the backend readiness state.
+
+The UI labels the current production baseline and the unpromoted XGBRanker
+candidate separately. Storefront copy, demo profiles, recommendation limits, category labels, and
+product presentation metadata live in `lib/storefront.json`. UI logic derives
+fallback ranking from the configured category preferences instead of embedding
+SKU lists in the page component. Cart, saved products, and the selected profile
+are kept locally on the visitor's device.
+
+The release dataset is anonymized and does not provide commercial product names
+or images. Live items therefore show truthful dataset metadata (`product_id`,
+category group, and price bucket) with deterministic generated visuals instead
+of invented product facts.
 
 ## Workspace Auth Headers
 
