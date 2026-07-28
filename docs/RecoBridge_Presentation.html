@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RecoBridge - bài thuyết trình đề tài tích hợp hệ thống gợi ý sản phẩm vào website bán hàng">
+  <title>RecoBridge — System Integration Defense</title>
+  <script>
+    (function () {
+      const saved = localStorage.getItem('recobridge-theme');
+      const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', dark);
+    })();
+
+    /*
+      THAY ẢNH SAU NÀY:
+      Điền đường dẫn tương đối hoặc tuyệt đối vào các chuỗi rỗng bên dưới.
+      Ví dụ: storefront: "./assets/demo-storefront.png"
+      Khi để trống, deck sẽ hiển thị ảnh giả lập có nhãn rõ ràng.
+    */
+    window.RECOBRIDGE_IMAGES = {
+      storefront: "",
+      swagger: "",
+      terminal: "",
+      training: ""
+    };
+  </script>
+  <style>
+    :root {
+      --bg: #f5f1e9;
+      --surface: #fffdf8;
+      --surface-2: #ebe5da;
+      --surface-3: #ded7ca;
+      --ink: #111318;
+      --body: #3d4149;
+      --muted: #737780;
+      --line: #c9c2b7;
+      --line-soft: #dfd8cc;
+      --accent: #ec6547;
+      --accent-soft: rgba(236, 101, 71, .13);
+      --blue: #4d70d5;
+      --blue-soft: rgba(77, 112, 213, .12);
+      --green: #718b59;
+      --green-soft: rgba(113, 139, 89, .14);
+      --gold: #b98931;
+      --gold-soft: rgba(185, 137, 49, .14);
+      --red: #bd4e4e;
+      --red-soft: rgba(189, 78, 78, .12);
+      --shadow: 0 18px 55px rgba(38, 32, 24, .12);
+      --serif: Cambria, "Times New Roman", Georgia, serif;
+      --sans: "Segoe UI", "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      --slide-pad-x: clamp(28px, 5.5vw, 90px);
+      --slide-pad-y: clamp(44px, 6vh, 74px);
+    }
+
+    html.dark {
+      --bg: #111317;
+      --surface: #191c21;
+      --surface-2: #22262d;
+      --surface-3: #2c3139;
+      --ink: #f5f1e9;
+      --body: #c9cbd0;
+      --muted: #92969e;
+      --line: #41464f;
+      --line-soft: #2e333b;
+      --accent: #ff8063;
+      --accent-soft: rgba(255, 128, 99, .15);
+      --blue: #7f9cf4;
+      --blue-soft: rgba(127, 156, 244, .15);
+      --green: #9ab77f;
+      --green-soft: rgba(154, 183, 127, .16);
+      --gold: #d9ad5f;
+      --gold-soft: rgba(217, 173, 95, .16);
+      --red: #ef7777;
+      --red-soft: rgba(239, 119, 119, .15);
+      --shadow: 0 20px 60px rgba(0, 0, 0, .32);
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { scroll-behavior: smooth; }
+    html, body { margin: 0; background: var(--bg); color: var(--body); font-family: var(--sans); }
+    body { overflow-x: hidden; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    code { font-family: var(--mono); }
+    .deck { height: 100dvh; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+    .slide { min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; position: relative; overflow: hidden; border-bottom: 1px solid var(--line-soft); }
+    .slide-inner { width: min(100%, 1600px); min-height: 100dvh; margin: 0 auto; padding: var(--slide-pad-y) var(--slide-pad-x); display: flex; flex-direction: column; justify-content: center; position: relative; }
+    .slide-inner.top { justify-content: flex-start; }
+    .slide-grid { display: grid; gap: clamp(28px, 4vw, 72px); align-items: center; }
+    .two-col { grid-template-columns: minmax(0, 1fr) minmax(340px, .95fr); }
+    .eyebrow { font: 700 clamp(10px, .8vw, 13px)/1.2 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+    .kicker { font: 600 clamp(13px, 1.15vw, 18px)/1.4 var(--mono); color: var(--muted); letter-spacing: .04em; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font: 520 clamp(52px, 7vw, 112px)/.96 var(--serif); letter-spacing: -.035em; color: var(--ink); }
+    h2 { font: 530 clamp(34px, 4.2vw, 68px)/1.02 var(--serif); letter-spacing: -.018em; color: var(--ink); max-width: 1220px; }
+    h3 { font: 650 clamp(18px, 1.7vw, 27px)/1.18 var(--sans); color: var(--ink); }
+    .lead { font-size: clamp(18px, 1.65vw, 27px); line-height: 1.52; max-width: 970px; color: var(--body); }
+    .body-copy { font-size: clamp(16px, 1.25vw, 21px); line-height: 1.58; }
+    .muted { color: var(--muted); }
+    .accent { color: var(--accent); }
+    .blue { color: var(--blue); }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .mono { font-family: var(--mono); }
+    .rule { height: 1px; background: var(--line); margin: 28px 0; }
+    .source { position: absolute; left: var(--slide-pad-x); bottom: 18px; font: 500 10px/1.3 var(--mono); color: var(--muted); letter-spacing: .03em; }
+    .slide-no { position: absolute; right: var(--slide-pad-x); bottom: 18px; font: 600 10px/1 var(--mono); color: var(--muted); }
+    .mini-label { font: 650 11px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+    .controls { position: fixed; z-index: 100; top: 14px; right: 16px; display: flex; gap: 7px; align-items: center; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(16px); box-shadow: 0 8px 28px rgba(0,0,0,.08); }
+    .control-btn { border: 0; min-width: 34px; height: 34px; padding: 0 10px; border-radius: 8px; background: transparent; cursor: pointer; font: 650 11px/1 var(--mono); letter-spacing: .04em; }
+    .control-btn:hover, .control-btn:focus-visible { outline: none; background: var(--surface-2); color: var(--ink); }
+    #deckCounter { padding: 0 4px; font: 650 11px/1 var(--mono); color: var(--muted); min-width: 45px; text-align: center; }
+    .progress { position: fixed; z-index: 99; left: 0; top: 0; height: 3px; width: 0; background: var(--accent); transition: width .2s ease; }
+
+    .title-lockup { max-width: 1280px; }
+    .title-sub { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px; font-size: clamp(16px, 1.45vw, 23px); }
+    .title-mark { position: absolute; width: clamp(380px, 48vw, 760px); height: clamp(380px, 48vw, 760px); right: clamp(-250px, -12vw, -90px); top: 50%; transform: translateY(-50%); border: clamp(52px, 6vw, 92px) solid var(--accent-soft); border-radius: 50%; }
+    .title-mark::before, .title-mark::after { content: ""; position: absolute; border-radius: 50%; border: 2px solid var(--line); }
+    .title-mark::before { inset: 15%; }
+    .title-mark::after { inset: 37%; background: var(--accent); border-color: var(--accent); }
+    .title-line { width: min(330px, 32vw); height: 5px; background: linear-gradient(90deg, var(--accent), var(--blue), transparent); margin: 28px 0 2px; }
+
+    .statement { max-width: 1180px; font: 520 clamp(35px, 4.8vw, 76px)/1.08 var(--serif); letter-spacing: -.018em; color: var(--ink); }
+    .statement strong { color: var(--accent); font-weight: 540; }
+    .logic-line { margin-top: clamp(34px, 6vh, 76px); display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 16px; max-width: 1100px; }
+    .logic-item { border-top: 3px solid var(--line); padding-top: 14px; font-size: clamp(16px, 1.35vw, 21px); }
+    .logic-item b { display: block; color: var(--ink); margin-bottom: 5px; }
+    .logic-arrow { color: var(--accent); font-size: 28px; }
+
+    .rubric-grid { margin-top: clamp(42px, 7vh, 88px); display: grid; grid-template-columns: 3fr 3fr 3fr 1fr; min-height: min(41vh, 390px); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .rubric-band { padding: clamp(24px, 3vw, 48px); border-left: 1px solid var(--line); display: flex; flex-direction: column; justify-content: space-between; }
+    .rubric-band:first-child { border-left: 0; }
+    .rubric-band:nth-child(1) { background: var(--blue-soft); }
+    .rubric-band:nth-child(2) { background: var(--green-soft); }
+    .rubric-band:nth-child(3) { background: var(--gold-soft); }
+    .rubric-band:nth-child(4) { background: var(--accent-soft); }
+    .rubric-pct { font: 540 clamp(42px, 5vw, 76px)/1 var(--serif); color: var(--ink); }
+    .rubric-band h3 { margin: 18px 0 10px; }
+    .rubric-band p { font-size: clamp(13px, 1.05vw, 17px); line-height: 1.5; }
+
+    .diagram-slide .slide-inner { height: 100dvh; min-height: 100dvh; padding-top: 62px; padding-bottom: 34px; }
+    .diagram-head { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 18px; flex: none; }
+    .diagram-head > div:first-child { flex: 1; }
+    .diagram-head h2 { font-size: clamp(31px, 3.2vw, 52px); }
+    .flow-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+    .flow-chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 13px; cursor: pointer; font: 650 10px/1 var(--mono); letter-spacing: .04em; color: var(--muted); }
+    .flow-chip:hover { color: var(--ink); border-color: var(--muted); }
+    .flow-chip.on { color: var(--bg); background: var(--ink); border-color: var(--ink); }
+    .diagram-stage { flex: 1; min-height: 0; position: relative; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow); }
+    .diagram-stage svg { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; user-select: none; }
+    .diagram-stage svg.grabbing { cursor: grabbing; }
+    .diagram-tools { position: absolute; left: 12px; top: 12px; display: flex; gap: 6px; z-index: 3; }
+    .diagram-tool { border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 90%, transparent); height: 30px; min-width: 34px; padding: 0 9px; border-radius: 7px; cursor: pointer; font: 650 10px/1 var(--mono); }
+    .diagram-tool:hover { background: var(--surface-2); }
+    .diagram-card { position: absolute; z-index: 4; right: 14px; bottom: 14px; width: min(360px, calc(100% - 28px)); padding: 17px 42px 17px 18px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(18px); box-shadow: var(--shadow); }
+    .diagram-card[hidden] { display: none; }
+    .diagram-card h3 { font: 540 21px/1.15 var(--serif); margin-bottom: 4px; }
+    .diagram-card .meta { font: 600 10px/1.3 var(--mono); color: var(--accent); margin-bottom: 9px; text-transform: uppercase; letter-spacing: .06em; }
+    .diagram-card p, .diagram-card li { font-size: 13px; line-height: 1.48; }
+    .diagram-card ol { margin: 7px 0 0 18px; padding: 0; }
+    .close-card { position: absolute; right: 9px; top: 9px; width: 26px; height: 26px; border: 0; border-radius: 7px; background: var(--surface-2); cursor: pointer; color: var(--muted); }
+    .close-card:hover { color: var(--ink); }
+
+    .svg-zone rect { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; stroke-dasharray: 6 6; rx: 18; }
+    .svg-zone-title { font: 700 12px var(--mono); text-transform: uppercase; letter-spacing: .12em; fill: var(--muted); }
+    .svg-zone-sub { font: 500 10px var(--mono); fill: var(--muted); }
+    .svg-node { cursor: pointer; transition: opacity .2s ease; }
+    .svg-node rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; rx: 12; transition: stroke .15s ease, fill .15s ease; }
+    .svg-node:hover rect { stroke: var(--accent); }
+    .svg-node.core rect { fill: var(--accent-soft); stroke: var(--accent); }
+    .svg-node.store rect { fill: var(--green-soft); stroke: var(--green); }
+    .svg-node.external rect { fill: var(--blue-soft); stroke: var(--blue); stroke-dasharray: 7 4; }
+    .svg-node.model rect { fill: var(--gold-soft); stroke: var(--gold); }
+    .svg-node-title { font: 700 16px var(--sans); fill: var(--ink); }
+    .svg-node-sub { font: 500 11px var(--mono); fill: var(--muted); }
+    .svg-node-tag { font: 700 9px var(--mono); letter-spacing: .1em; text-transform: uppercase; fill: var(--accent); }
+    .svg-edge { fill: none; stroke: var(--muted); stroke-width: 2; marker-end: url(#arrow-muted); transition: opacity .2s ease, stroke .2s ease; }
+    .svg-edge.blue-edge { marker-end: url(#arrow-blue); }
+    .svg-edge.green-edge { marker-end: url(#arrow-green); }
+    .svg-edge.accent-edge { marker-end: url(#arrow-accent); }
+    .svg-edge.dashed { stroke-dasharray: 7 6; }
+    .svg-edge-label { font: 600 10px var(--mono); fill: var(--muted); }
+    .diagram-stage.flowing .svg-edge, .diagram-stage.flowing .svg-edge-label, .diagram-stage.flowing .svg-node { opacity: .13; }
+    .diagram-stage.flowing .svg-zone { opacity: .42; }
+    .diagram-stage.flowing .svg-edge.lit { opacity: 1; stroke: var(--accent); marker-end: url(#arrow-accent); stroke-dasharray: 9 7; animation: march .8s linear infinite; }
+    .diagram-stage.flowing .svg-edge-label.lit { opacity: 1; fill: var(--accent); }
+    .diagram-stage.flowing .svg-node.lit { opacity: 1; }
+    .diagram-stage.flowing .svg-node.lit rect { stroke: var(--accent); stroke-width: 2; }
+    @keyframes march { to { stroke-dashoffset: -16; } }
+
+    .df-label { font: 700 13px var(--mono); fill: var(--muted); letter-spacing: .1em; }
+    .df-store { fill: var(--surface-2); stroke: var(--green); stroke-width: 1.5; }
+    .df-process { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; rx: 12; }
+    .df-process.hot { fill: var(--accent-soft); stroke: var(--accent); }
+    .df-process.ml { fill: var(--gold-soft); stroke: var(--gold); }
+    .df-text { font: 700 14px var(--sans); fill: var(--ink); }
+    .df-sub { font: 500 10px var(--mono); fill: var(--muted); }
+
+    .seq-participant rect { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.5; rx: 10; }
+    .seq-participant text { font: 700 13px var(--sans); fill: var(--ink); }
+    .seq-life { stroke: var(--line); stroke-width: 1.3; stroke-dasharray: 5 5; }
+    .seq-message { opacity: .2; transition: opacity .2s ease; }
+    .seq-message.active, .seq-message.done { opacity: 1; }
+    .seq-message.active .seq-arrow { stroke: var(--accent); marker-end: url(#seq-arrow-accent); stroke-dasharray: 10 7; animation: march .7s linear infinite; }
+    .seq-message.done .seq-arrow { stroke: var(--muted); marker-end: url(#seq-arrow); }
+    .seq-arrow { fill: none; stroke-width: 2; }
+    .seq-message text { font: 600 10px var(--mono); fill: var(--muted); }
+    .seq-message.active text { fill: var(--accent); }
+    .seq-alt rect { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 1; stroke-dasharray: 5 4; rx: 8; }
+    .seq-alt text { font: 700 10px var(--mono); fill: var(--blue); }
+
+    .protocol-layout { margin-top: clamp(36px, 6vh, 72px); display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--line); }
+    .protocol { padding: clamp(26px, 3vw, 48px); border-left: 1px solid var(--line); min-height: 340px; }
+    .protocol:first-child { border-left: 0; }
+    .protocol.selected { background: var(--accent-soft); }
+    .protocol h3 { font-size: clamp(25px, 2.2vw, 36px); }
+    .protocol .verdict { display: inline-block; margin: 16px 0 24px; font: 700 10px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+    .protocol ul { margin: 0; padding: 0; list-style: none; }
+    .protocol li { padding: 10px 0; border-top: 1px solid var(--line-soft); font-size: clamp(14px, 1.15vw, 18px); line-height: 1.45; }
+
+    .integrity-flow { margin-top: clamp(34px, 6vh, 70px); display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: 16px; }
+    .integrity-step { border-top: 4px solid var(--line); padding: 20px 8px 0; }
+    .integrity-step.good { border-color: var(--green); }
+    .integrity-step.warn { border-color: var(--gold); }
+    .integrity-step.bad { border-color: var(--red); }
+    .integrity-step .num { font: 700 11px/1 var(--mono); color: var(--muted); margin-bottom: 16px; }
+    .integrity-step p { margin-top: 10px; font-size: clamp(14px, 1.15vw, 18px); line-height: 1.5; }
+    .integrity-arrow { display: grid; place-items: center; color: var(--accent); font-size: 30px; }
+    .integrity-note { margin-top: 40px; padding: 18px 22px; border-left: 4px solid var(--accent); background: var(--accent-soft); font-size: clamp(16px, 1.3vw, 20px); line-height: 1.5; }
+
+    .ml-pipeline { margin-top: clamp(36px, 6vh, 76px); display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; gap: 14px; align-items: center; }
+    .ml-stage { min-height: 230px; border-top: 4px solid var(--line); padding-top: 22px; }
+    .ml-stage:nth-of-type(1) { border-color: var(--blue); }
+    .ml-stage:nth-of-type(3) { border-color: var(--green); }
+    .ml-stage:nth-of-type(5) { border-color: var(--gold); }
+    .ml-stage:nth-of-type(7) { border-color: var(--accent); }
+    .ml-stage .big { font: 540 clamp(33px, 3.6vw, 58px)/1 var(--serif); color: var(--ink); }
+    .ml-stage h3 { margin: 14px 0 10px; }
+    .ml-stage p { font-size: clamp(13px, 1vw, 16px); line-height: 1.5; }
+    .ml-arrow { color: var(--muted); font-size: 28px; }
+
+    .metric-story { margin-top: clamp(32px, 5vh, 60px); display: grid; grid-template-columns: .86fr 1.14fr; gap: clamp(36px, 6vw, 100px); align-items: center; }
+    .hero-metric .value { font: 520 clamp(82px, 11vw, 170px)/.86 var(--serif); letter-spacing: -.07em; color: var(--red); }
+    .hero-metric .label { margin-top: 18px; font-size: clamp(17px, 1.5vw, 23px); max-width: 520px; }
+    .gate-line { margin-top: 24px; display: flex; align-items: center; gap: 14px; font: 650 12px/1 var(--mono); color: var(--muted); }
+    .gate-track { height: 6px; width: min(340px, 42vw); background: var(--surface-3); border-radius: 999px; position: relative; overflow: hidden; }
+    .gate-track span { display: block; height: 100%; width: 9.28%; background: var(--red); }
+    .metric-bars { display: grid; gap: 24px; }
+    .metric-row { display: grid; grid-template-columns: 175px 1fr 90px; gap: 14px; align-items: center; }
+    .metric-name { font: 650 12px/1.3 var(--mono); color: var(--muted); }
+    .metric-bar { height: 16px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+    .metric-bar span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+    .metric-row:nth-child(2) .metric-bar span { background: var(--green); }
+    .metric-row:nth-child(3) .metric-bar span { background: var(--gold); }
+    .metric-value { font: 700 13px/1 var(--mono); color: var(--ink); text-align: right; }
+    .decision-ribbon { margin-top: 38px; padding: 18px 22px; background: var(--green-soft); border-left: 4px solid var(--green); font-size: clamp(15px, 1.25vw, 20px); line-height: 1.5; }
+
+    .evidence-strip { margin-top: clamp(34px, 6vh, 72px); display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .evidence { padding: clamp(26px, 3vw, 44px); border-left: 1px solid var(--line); }
+    .evidence:first-child { border-left: 0; }
+    .evidence .value { font: 540 clamp(40px, 4.8vw, 74px)/1 var(--serif); color: var(--ink); }
+    .evidence h3 { margin: 14px 0 9px; }
+    .evidence p { font-size: clamp(13px, 1.03vw, 16px); line-height: 1.45; }
+    .evidence.pass .value { color: var(--green); }
+
+    .mock-grid { margin-top: clamp(30px, 5vh, 54px); display: grid; grid-template-columns: 1.2fr .9fr .9fr; gap: 18px; }
+    .mock-frame { min-height: min(48vh, 430px); border: 1px solid var(--line); border-radius: 16px; background: var(--surface); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+    .mock-bar { height: 38px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-bottom: 1px solid var(--line-soft); }
+    .mock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+    .mock-title { margin-left: 8px; font: 600 9px/1 var(--mono); color: var(--muted); }
+    .mock-media { flex: 1; position: relative; display: grid; place-items: center; padding: 24px; background:
+      linear-gradient(135deg, var(--surface), var(--surface-2));
+      background-size: cover; background-position: center; }
+    .mock-media.has-image .placeholder-core { display: none; }
+    .placeholder-core { text-align: center; max-width: 260px; }
+    .placeholder-icon { width: 58px; height: 44px; border: 2px solid var(--muted); border-radius: 9px; margin: 0 auto 16px; position: relative; opacity: .75; }
+    .placeholder-icon::before { content: ""; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); left: 8px; top: 7px; }
+    .placeholder-icon::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: 7px; height: 16px; clip-path: polygon(0 100%, 28% 25%, 48% 67%, 68% 38%, 100% 100%); background: var(--muted); }
+    .placeholder-core strong { display: block; font: 700 11px/1.3 var(--mono); color: var(--ink); letter-spacing: .08em; text-transform: uppercase; }
+    .placeholder-core span { display: block; font-size: 12px; line-height: 1.45; margin-top: 8px; color: var(--muted); }
+    .mock-caption { padding: 15px 17px; border-top: 1px solid var(--line-soft); }
+    .mock-caption b { display: block; color: var(--ink); font-size: 14px; margin-bottom: 3px; }
+    .mock-caption span { font-size: 12px; color: var(--muted); }
+
+    .tradeoff-layout { margin-top: clamp(34px, 5vh, 64px); display: grid; grid-template-columns: 1fr 1fr; gap: clamp(34px, 5vw, 82px); }
+    .trade-list { border-top: 1px solid var(--line); }
+    .trade-item { display: grid; grid-template-columns: 145px 1fr; gap: 18px; padding: 17px 0; border-bottom: 1px solid var(--line-soft); }
+    .trade-item b { color: var(--ink); }
+    .trade-item span { font-size: clamp(14px, 1.1vw, 17px); line-height: 1.45; }
+    .limit-quote { padding: clamp(28px, 3vw, 46px); background: var(--accent-soft); border-left: 5px solid var(--accent); font: 520 clamp(24px, 2.5vw, 40px)/1.28 var(--serif); color: var(--ink); }
+    .limit-quote small { display: block; margin-top: 20px; font: 600 11px/1.45 var(--mono); color: var(--muted); }
+
+    .roadmap { margin-top: clamp(42px, 7vh, 86px); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-top: 1px solid var(--line); }
+    .road-step { position: relative; padding: 28px 34px 34px; border-left: 1px solid var(--line); min-height: 300px; }
+    .road-step:first-child { border-left: 0; }
+    .road-step::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--line); position: absolute; top: -6px; left: 30px; }
+    .road-step.now::before { background: var(--accent); box-shadow: 0 0 0 7px var(--accent-soft); }
+    .road-step h3 { margin: 18px 0 12px; }
+    .road-step p { font-size: clamp(14px, 1.15vw, 18px); line-height: 1.5; }
+    .road-step .road-tag { font: 700 10px/1 var(--mono); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+
+    .close-slide { background: var(--ink); color: var(--bg); }
+    .close-slide h2 { color: var(--bg); font-size: clamp(47px, 6vw, 94px); max-width: 1280px; }
+    .close-slide .eyebrow { color: var(--accent); }
+    .close-slide .lead { color: color-mix(in srgb, var(--bg) 72%, transparent); margin-top: 32px; }
+    .close-slide .source, .close-slide .slide-no { color: color-mix(in srgb, var(--bg) 48%, transparent); }
+    .closing-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: clamp(46px, 7vh, 82px); max-width: 1180px; }
+    .closing-points div { border-top: 1px solid color-mix(in srgb, var(--bg) 28%, transparent); padding-top: 18px; font-size: clamp(15px, 1.25vw, 20px); line-height: 1.45; color: color-mix(in srgb, var(--bg) 78%, transparent); }
+    .closing-points b { color: var(--bg); display: block; margin-bottom: 6px; }
+
+    body.overview .deck { height: auto; overflow: visible; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 66px 18px 18px; }
+    body.overview .slide { min-height: 0; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); cursor: pointer; }
+    body.overview .slide-inner { min-height: 900px; width: 1600px; transform: scale(calc((100vw - 72px) / 3 / 1600)); transform-origin: top left; pointer-events: none; }
+    body.overview .controls, body.overview .progress { position: fixed; }
+
+    @media (max-width: 980px) {
+      .two-col, .metric-story, .tradeoff-layout { grid-template-columns: 1fr; }
+      .rubric-grid { grid-template-columns: 1fr 1fr; }
+      .rubric-band:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+      .rubric-band:nth-child(4) { border-top: 1px solid var(--line); }
+      .logic-line, .integrity-flow, .ml-pipeline { grid-template-columns: 1fr; }
+      .logic-arrow, .integrity-arrow, .ml-arrow { transform: rotate(90deg); text-align: center; }
+      .protocol-layout, .mock-grid, .roadmap { grid-template-columns: 1fr; }
+      .protocol, .road-step { border-left: 0; border-top: 1px solid var(--line); min-height: 0; }
+      .evidence-strip { grid-template-columns: 1fr 1fr; }
+      .evidence:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+      .evidence:nth-child(4) { border-top: 1px solid var(--line); }
+      .diagram-head { align-items: flex-start; flex-direction: column; }
+      .flow-chips { justify-content: flex-start; }
+      .diagram-stage { min-height: 66vh; }
+      .diagram-slide .slide-inner { height: auto; min-height: 100dvh; }
+      .closing-points { grid-template-columns: 1fr; }
+      .slide { overflow: visible; }
+      .slide-inner { min-height: 100dvh; }
+      body.overview .deck { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .controls { left: 10px; right: 10px; justify-content: center; }
+      .rubric-grid, .evidence-strip { grid-template-columns: 1fr; }
+      .rubric-band, .rubric-band:nth-child(3), .rubric-band:nth-child(4), .evidence, .evidence:nth-child(3), .evidence:nth-child(4) { border-left: 0; border-top: 1px solid var(--line); }
+      .metric-row { grid-template-columns: 1fr 70px; }
+      .metric-bar { grid-column: 1 / -1; grid-row: 2; }
+      .trade-item { grid-template-columns: 1fr; gap: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .diagram-stage.flowing .svg-edge.lit, .seq-message.active .seq-arrow { animation: none; }
+      * { transition-duration: .001ms !important; }
+    }
+
+    @media print {
+      .controls, .progress, .diagram-tools, .diagram-card { display: none !important; }
+      .deck { height: auto; overflow: visible; }
+      .slide { min-height: 0; height: 100vh; page-break-after: always; break-after: page; }
+      .slide-inner { min-height: 0; height: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="deckProgress"></div>
+  <nav class="controls" aria-label="Điều khiển bài thuyết trình">
+    <button class="control-btn" id="prevSlide" title="Slide trước (←)">←</button>
+    <span id="deckCounter">01 / 15</span>
+    <button class="control-btn" id="nextSlide" title="Slide sau (→)">→</button>
+    <button class="control-btn" id="overviewToggle" title="Tổng quan (O)">O</button>
+    <button class="control-btn" id="fullscreenToggle" title="Toàn màn hình (F)">F</button>
+    <button class="control-btn" id="themeToggle" title="Đổi giao diện (T)">◐</button>
+  </nav>
+
+  <main class="deck" id="deck">
+    <section class="slide" id="slide-1" data-title="RecoBridge">
+      <div class="slide-inner">
+        <div class="title-mark" aria-hidden="true"></div>
+        <div class="title-lockup">
+          <div class="eyebrow">System Integration · Đề tài 18</div>
+          <h1>RecoBridge</h1>
+          <div class="title-line"></div>
+          <p class="lead" style="margin-top:24px">Tích hợp hệ thống gợi ý sản phẩm vào website bán hàng bằng <strong>REST API</strong>, với K-Means, XGBRanker và fallback có kiểm soát.</p>
+          <div class="title-sub">
+            <span class="kicker">Synerise → ML → FastAPI → Next.js</span>
+            <span class="muted">Nhóm dự án RecoBridge · 2026</span>
+          </div>
+        </div>
+        <div class="source">Nguồn: Đề tài.pdf · README.md · DEL-06</div>
+        <div class="slide-no">01</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-2" data-title="Luận điểm">
+      <div class="slide-inner">
+        <div class="eyebrow">Luận điểm trung tâm</div>
+        <p class="statement">Một hệ gợi ý chỉ có giá trị khi <strong>dữ liệu, mô hình và website</strong> vận hành như một hệ thống thống nhất.</p>
+        <div class="logic-line" aria-label="Chuỗi giá trị của RecoBridge">
+          <div class="logic-item"><b>Dữ liệu đúng thời điểm</b>Không leakage, có schema và version.</div>
+          <div class="logic-arrow">→</div>
+          <div class="logic-item"><b>Quyết định có kiểm soát</b>Candidate, ranking, gate và fallback.</div>
+          <div class="logic-arrow">→</div>
+          <div class="logic-item"><b>Phản hồi quay về hệ thống</b>Exposure, feedback, idempotency.</div>
+        </div>
+        <div class="source">Nguồn: DEL-06 §1 · ARC-01 §3</div>
+        <div class="slide-no">02</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-3" data-title="Tiêu chí chấm">
+      <div class="slide-inner top">
+        <div class="eyebrow">Định tuyến theo rubric</div>
+        <h2>Mỗi phần của hệ thống trả lời trực tiếp một tiêu chí chấm điểm</h2>
+        <div class="rubric-grid">
+          <div class="rubric-band"><div><div class="rubric-pct">30%</div><h3>Kiến trúc</h3></div><p>System architecture, Data Flow, Sequence Diagram và lựa chọn REST/gRPC/Broker.</p></div>
+          <div class="rubric-band"><div><div class="rubric-pct">30%</div><h3>Toàn vẹn dữ liệu</h3></div><p>Retry có điều kiện, transaction, idempotency và fallback khi lỗi nửa chừng.</p></div>
+          <div class="rubric-band"><div><div class="rubric-pct">30%</div><h3>Hiện thực hóa</h3></div><p>Website, BFF, FastAPI, model artifact, event store và bằng chứng smoke test.</p></div>
+          <div class="rubric-band"><div><div class="rubric-pct">10%</div><h3>Phản biện</h3></div><p>Ưu, nhược và giới hạn được nói đúng trạng thái.</p></div>
+        </div>
+        <div class="source">Nguồn: Đề tài.pdf, trang 2 · APP-03</div>
+        <div class="slide-no">03</div>
+      </div>
+    </section>
+
+    <section class="slide diagram-slide" id="slide-4" data-title="Kiến trúc">
+      <div class="slide-inner top">
+        <div class="diagram-head">
+          <div><div class="eyebrow">Kiến trúc tích hợp · tương tác</div><h2>Online serving tách khỏi offline training</h2></div>
+          <div class="flow-chips" data-flow-controls="architecture">
+            <button class="flow-chip on" data-flow="all">Tất cả</button>
+            <button class="flow-chip" data-flow="recommend">Gợi ý</button>
+            <button class="flow-chip" data-flow="feedback">Feedback</button>
+            <button class="flow-chip" data-flow="training">Training</button>
+          </div>
+        </div>
+        <div class="diagram-stage" id="architecture-stage" data-diagram="architecture">
+          <div class="diagram-tools"><button class="diagram-tool" data-reset>100%</button><span class="diagram-tool" data-zoom-label>100%</span></div>
+          <svg viewBox="0 0 1500 760" role="img" aria-label="Kiến trúc hệ thống RecoBridge với các luồng gợi ý, feedback và training">
+            <defs>
+              <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--muted)"/></marker>
+              <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--accent)"/></marker>
+              <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--blue)"/></marker>
+              <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--green)"/></marker>
+            </defs>
+            <g id="svg-content" data-svg-content>
+              <g class="svg-zone"><rect x="32" y="78" width="270" height="570"/><text class="svg-zone-title" x="54" y="109">Client</text><text class="svg-zone-sub" x="54" y="129">trải nghiệm mua sắm</text></g>
+              <g class="svg-zone"><rect x="332" y="78" width="500" height="570"/><text class="svg-zone-title" x="354" y="109">Application plane</text><text class="svg-zone-sub" x="354" y="129">request-response đồng bộ</text></g>
+              <g class="svg-zone"><rect x="862" y="78" width="280" height="570"/><text class="svg-zone-title" x="884" y="109">Serving data</text><text class="svg-zone-sub" x="884" y="129">đọc nhanh + ghi bền vững</text></g>
+              <g class="svg-zone"><rect x="1172" y="78" width="296" height="570"/><text class="svg-zone-title" x="1194" y="109">Offline ML plane</text><text class="svg-zone-sub" x="1194" y="129">batch, versioned artifacts</text></g>
+
+              <path id="a-e1" class="svg-edge accent-edge" d="M270 240 C320 240 334 214 380 214"/>
+              <path id="a-e2" class="svg-edge accent-edge" d="M620 214 C658 214 672 214 704 214"/>
+              <path id="a-e3" class="svg-edge accent-edge" d="M832 214 C886 214 894 214 930 214"/>
+              <path id="a-e4" class="svg-edge accent-edge" d="M930 274 C880 324 865 357 832 357"/>
+              <path id="a-e5" class="svg-edge accent-edge" d="M704 357 C660 357 644 357 620 357"/>
+              <path id="a-e6" class="svg-edge accent-edge" d="M380 357 C330 357 318 285 270 285"/>
+              <path id="a-e7" class="svg-edge green-edge" d="M270 410 C330 410 330 500 380 500"/>
+              <path id="a-e8" class="svg-edge green-edge" d="M620 500 C760 500 820 500 930 500"/>
+              <path id="a-e9" class="svg-edge green-edge dashed" d="M1070 545 C1128 600 1180 583 1224 535"/>
+              <path id="a-e10" class="svg-edge blue-edge" d="M1224 473 C1180 400 1140 360 1070 331"/>
+              <path id="a-e11" class="svg-edge blue-edge" d="M1320 409 L1320 320"/>
+              <path id="a-e12" class="svg-edge blue-edge" d="M1224 257 C1140 257 1105 257 1070 257"/>
+              <path id="a-e13" class="svg-edge blue-edge dashed" d="M1320 206 L1320 164"/>
+              <text class="svg-edge-label" data-edge="a-e1" x="320" y="225">HTTPS</text>
+              <text class="svg-edge-label" data-edge="a-e2" x="660" y="199">REST / JSON</text>
+              <text class="svg-edge-label" data-edge="a-e8" x="738" y="486">transaction + key</text>
+              <text class="svg-edge-label" data-edge="a-e9" x="1120" y="575">watermark batch</text>
+              <text class="svg-edge-label" data-edge="a-e12" x="1120" y="242">checksum + schema</text>
+
+              <g class="svg-node" data-key="shopper"><rect x="72" y="184" width="198" height="130"/><text class="svg-node-tag" x="92" y="207">User</text><text class="svg-node-title" x="92" y="239">Shopper</text><text class="svg-node-sub" x="92" y="263">mở trang · xem widget</text><text class="svg-node-sub" x="92" y="282">like · add-to-cart</text></g>
+              <g class="svg-node" data-key="website"><rect x="72" y="366" width="198" height="92"/><text class="svg-node-title" x="92" y="399">Website UI</text><text class="svg-node-sub" x="92" y="422">Next.js storefront</text><text class="svg-node-sub" x="92" y="440">exposure sau render</text></g>
+              <g class="svg-node" data-key="bff"><rect x="380" y="174" width="240" height="92"/><text class="svg-node-title" x="402" y="208">Web BFF</text><text class="svg-node-sub" x="402" y="231">/api/* proxy</text><text class="svg-node-sub" x="402" y="249">giữ backend token</text></g>
+              <g class="svg-node core" data-key="api"><rect x="704" y="167" width="128" height="194"/><text class="svg-node-tag" x="722" y="193">Core</text><text class="svg-node-title" x="722" y="226">FastAPI</text><text class="svg-node-sub" x="722" y="253">validate</text><text class="svg-node-sub" x="722" y="273">candidate</text><text class="svg-node-sub" x="722" y="293">rank / fallback</text><text class="svg-node-sub" x="722" y="313">reason codes</text><text class="svg-node-sub" x="722" y="333">version metadata</text></g>
+              <g class="svg-node" data-key="event-api"><rect x="380" y="458" width="240" height="86"/><text class="svg-node-title" x="402" y="490">Event API</text><text class="svg-node-sub" x="402" y="513">exposure + feedback</text><text class="svg-node-sub" x="402" y="531">Idempotency-Key</text></g>
+              <g class="svg-node model" data-key="bundle"><rect x="930" y="166" width="140" height="165"/><text class="svg-node-title" x="950" y="200">Serving</text><text class="svg-node-title" x="950" y="222">bundle</text><text class="svg-node-sub" x="950" y="250">catalog</text><text class="svg-node-sub" x="950" y="269">features</text><text class="svg-node-sub" x="950" y="288">candidates</text><text class="svg-node-sub" x="950" y="307">model alias</text></g>
+              <g class="svg-node store" data-key="postgres"><rect x="930" y="457" width="140" height="88"/><text class="svg-node-title" x="950" y="491">PostgreSQL</text><text class="svg-node-sub" x="950" y="515">durable events</text><text class="svg-node-sub" x="950" y="533">unique constraint</text></g>
+              <g class="svg-node external" data-key="synerise"><rect x="1224" y="120" width="192" height="80"/><text class="svg-node-title" x="1246" y="153">Synerise</text><text class="svg-node-sub" x="1246" y="176">Parquet event files</text></g>
+              <g class="svg-node" data-key="pipeline"><rect x="1224" y="244" width="192" height="82"/><text class="svg-node-title" x="1246" y="277">ETL + features</text><text class="svg-node-sub" x="1246" y="301">time split · cutoff</text></g>
+              <g class="svg-node model" data-key="training"><rect x="1224" y="408" width="192" height="128"/><text class="svg-node-title" x="1246" y="442">Train / evaluate</text><text class="svg-node-sub" x="1246" y="468">K-Means routing</text><text class="svg-node-sub" x="1246" y="488">XGBRanker</text><text class="svg-node-sub" x="1246" y="508">promotion gates</text></g>
+            </g>
+          </svg>
+          <div class="diagram-card" data-detail-card>
+            <button class="close-card" data-close-card aria-label="Đóng">×</button>
+            <h3 data-detail-title>Chọn một thành phần</h3>
+            <div class="meta" data-detail-meta>click node · chọn luồng · kéo/zoom sơ đồ</div>
+            <p data-detail-body>Đường request đồng bộ dùng REST; feedback được ghi bền vững; training chạy batch và xuất artifact có version.</p>
+          </div>
+        </div>
+        <div class="source">Nguồn: ARC-01 · runtime trong README.md</div>
+        <div class="slide-no">04</div>
+      </div>
+    </section>
+
+    <section class="slide diagram-slide" id="slide-5" data-title="Data Flow">
+      <div class="slide-inner top">
+        <div class="diagram-head">
+          <div><div class="eyebrow">Data Flow · Level 0</div><h2>Feedback khép kín vòng dữ liệu, nhưng không nằm trong request path</h2></div>
+          <div class="flow-chips" data-flow-controls="dataflow">
+            <button class="flow-chip on" data-flow="all">Tất cả</button>
+            <button class="flow-chip" data-flow="offline">Offline</button>
+            <button class="flow-chip" data-flow="online">Online</button>
+            <button class="flow-chip" data-flow="loop">Feedback loop</button>
+          </div>
+        </div>
+        <div class="diagram-stage" id="dataflow-stage" data-diagram="dataflow">
+          <div class="diagram-tools"><button class="diagram-tool" data-reset>100%</button><span class="diagram-tool" data-zoom-label>100%</span></div>
+          <svg viewBox="0 0 1500 720" role="img" aria-label="Data Flow Diagram của RecoBridge">
+            <defs>
+              <marker id="df-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--muted)"/></marker>
+              <marker id="df-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--accent)"/></marker>
+            </defs>
+            <g id="svg-content-dataflow" data-svg-content>
+              <text class="df-label" x="55" y="67">OFFLINE PLANE</text>
+              <text class="df-label" x="55" y="390">ONLINE PLANE</text>
+              <path id="d-e1" class="svg-edge" style="marker-end:url(#df-arrow)" d="M220 170 L318 170"/>
+              <path id="d-e2" class="svg-edge" style="marker-end:url(#df-arrow)" d="M518 170 L616 170"/>
+              <path id="d-e3" class="svg-edge" style="marker-end:url(#df-arrow)" d="M816 170 L914 170"/>
+              <path id="d-e4" class="svg-edge" style="marker-end:url(#df-arrow)" d="M1114 170 L1212 170"/>
+              <path id="d-e5" class="svg-edge accent-edge" d="M245 505 L380 505"/>
+              <path id="d-e6" class="svg-edge accent-edge" d="M580 505 L715 505"/>
+              <path id="d-e7" class="svg-edge accent-edge" d="M915 505 L1060 505"/>
+              <path id="d-e8" class="svg-edge accent-edge" d="M1260 505 L1375 505"/>
+              <path id="d-e9" class="svg-edge green-edge" d="M1430 558 C1430 640 880 648 780 590"/>
+              <path id="d-e10" class="svg-edge green-edge dashed" d="M780 590 C780 680 1180 680 1310 245"/>
+              <path id="d-e11" class="svg-edge blue-edge dashed" d="M1310 230 C1180 320 900 363 815 455"/>
+              <text class="svg-edge-label" data-edge="d-e9" x="1095" y="630">exposure + feedback</text>
+              <text class="svg-edge-label" data-edge="d-e10" x="1110" y="673">batch read theo watermark</text>
+              <text class="svg-edge-label" data-edge="d-e11" x="1000" y="362">production alias</text>
+
+              <g class="svg-node external" data-key="df-source"><rect x="55" y="125" width="165" height="90"/><text class="df-text" x="78" y="160">Synerise files</text><text class="df-sub" x="78" y="184">page · cart · buy</text></g>
+              <g class="svg-node" data-key="df-normalize"><rect class="df-process" x="318" y="125" width="200" height="90"/><text class="df-text" x="342" y="158">1. Chuẩn hóa</text><text class="df-sub" x="342" y="181">schema · dedup · time split</text></g>
+              <g class="svg-node store" data-key="df-events"><path class="df-store" d="M616 138 C616 120 816 120 816 138 L816 202 C816 220 616 220 616 202 Z"/><ellipse class="df-store" cx="716" cy="138" rx="100" ry="18"/><text class="df-text" x="648" y="171">Canonical events</text><text class="df-sub" x="669" y="194">curated layer</text></g>
+              <g class="svg-node" data-key="df-features"><rect class="df-process" x="914" y="125" width="200" height="90"/><text class="df-text" x="940" y="158">2. Đặc trưng</text><text class="df-sub" x="940" y="181">user · item · context</text></g>
+              <g class="svg-node model" data-key="df-artifacts"><path class="df-store" d="M1212 138 C1212 120 1412 120 1412 138 L1412 202 C1412 220 1212 220 1212 202 Z"/><ellipse class="df-store" cx="1312" cy="138" rx="100" ry="18"/><text class="df-text" x="1242" y="171">Model artifacts</text><text class="df-sub" x="1248" y="194">bundle + checksum</text></g>
+
+              <g class="svg-node" data-key="df-user"><rect x="55" y="460" width="190" height="96"/><text class="df-text" x="80" y="496">Website</text><text class="df-sub" x="80" y="521">profile · context · top_k</text><text class="df-sub" x="80" y="540">render + action</text></g>
+              <g class="svg-node" data-key="df-bff"><rect x="380" y="460" width="200" height="96"/><text class="df-text" x="405" y="496">BFF</text><text class="df-sub" x="405" y="521">token + contract boundary</text></g>
+              <g class="svg-node core" data-key="df-api"><rect class="df-process hot" x="715" y="452" width="200" height="104"/><text class="df-text" x="740" y="489">4. Recommendation</text><text class="df-sub" x="740" y="514">resolve → retrieve → rank</text><text class="df-sub" x="740" y="535">filter → fallback</text></g>
+              <g class="svg-node model" data-key="df-topn"><rect class="df-process ml" x="1060" y="460" width="200" height="96"/><text class="df-text" x="1085" y="496">Top-N response</text><text class="df-sub" x="1085" y="521">items · strategy · version</text></g>
+              <g class="svg-node store" data-key="df-log"><path class="df-store" d="M1375 473 C1375 455 1470 455 1470 473 L1470 543 C1470 561 1375 561 1375 543 Z"/><ellipse class="df-store" cx="1422" cy="473" rx="47" ry="18"/><text class="df-text" x="1394" y="509">Logs</text><text class="df-sub" x="1389" y="532">PG</text></g>
+            </g>
+          </svg>
+          <div class="diagram-card" data-detail-card>
+            <button class="close-card" data-close-card aria-label="Đóng">×</button>
+            <h3 data-detail-title>Data Flow Level 0</h3>
+            <div class="meta" data-detail-meta>offline ≠ online</div>
+            <p data-detail-body>Full ETL và training không chạy trong request path. API chỉ đọc serving bundle đã validate, còn feedback được commit trước khi dùng cho lần training kế tiếp.</p>
+          </div>
+        </div>
+        <div class="source">Nguồn: ARC-02 §1 · ML-04 §2–3</div>
+        <div class="slide-no">05</div>
+      </div>
+    </section>
+
+    <section class="slide diagram-slide" id="slide-6" data-title="Sequence Diagram">
+      <div class="slide-inner top">
+        <div class="diagram-head">
+          <div><div class="eyebrow">Sequence Diagram · có thể chạy</div><h2>Một request tạo top-N, rồi feedback thay đổi tín hiệu phiên</h2></div>
+          <div class="flow-chips">
+            <button class="flow-chip" id="playSequence">▶ Chạy</button>
+            <button class="flow-chip on" data-sequence="known">User có lịch sử</button>
+            <button class="flow-chip" data-sequence="cold">Cold-start</button>
+            <button class="flow-chip" data-sequence="feedback">Feedback</button>
+          </div>
+        </div>
+        <div class="diagram-stage" id="sequence-stage" data-diagram="sequence">
+          <div class="diagram-tools"><button class="diagram-tool" data-reset>100%</button><span class="diagram-tool" data-zoom-label>100%</span></div>
+          <svg viewBox="0 0 1500 720" role="img" aria-label="Sequence diagram request gợi ý và feedback của RecoBridge">
+            <defs>
+              <marker id="seq-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--muted)"/></marker>
+              <marker id="seq-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" style="fill:var(--accent)"/></marker>
+            </defs>
+            <g id="svg-content-sequence" data-svg-content>
+              <g class="seq-participant"><rect x="55" y="30" width="190" height="55"/><text x="150" y="64" text-anchor="middle">Shopper</text></g>
+              <g class="seq-participant"><rect x="335" y="30" width="190" height="55"/><text x="430" y="64" text-anchor="middle">Website / BFF</text></g>
+              <g class="seq-participant"><rect x="655" y="30" width="190" height="55"/><text x="750" y="64" text-anchor="middle">Recommendation API</text></g>
+              <g class="seq-participant"><rect x="975" y="30" width="190" height="55"/><text x="1070" y="64" text-anchor="middle">Serving bundle</text></g>
+              <g class="seq-participant"><rect x="1255" y="30" width="190" height="55"/><text x="1350" y="64" text-anchor="middle">PostgreSQL</text></g>
+              <line class="seq-life" x1="150" y1="85" x2="150" y2="675"/><line class="seq-life" x1="430" y1="85" x2="430" y2="675"/><line class="seq-life" x1="750" y1="85" x2="750" y2="675"/><line class="seq-life" x1="1070" y1="85" x2="1070" y2="675"/><line class="seq-life" x1="1350" y1="85" x2="1350" y2="675"/>
+              <g class="seq-alt" data-scenario-box="known"><rect x="625" y="215" width="580" height="190"/><text x="642" y="238">ALT · feature available</text></g>
+              <g class="seq-alt" data-scenario-box="cold" hidden><rect x="625" y="215" width="580" height="190"/><text x="642" y="238">ELSE · cold-start / dependency unavailable</text></g>
+
+              <g class="seq-message" data-step="1" data-scenarios="known cold feedback"><path class="seq-arrow" d="M150 125 L430 125"/><text x="290" y="114" text-anchor="middle">1 · Mở trang sản phẩm</text></g>
+              <g class="seq-message" data-step="2" data-scenarios="known cold feedback"><path class="seq-arrow" d="M430 180 L750 180"/><text x="590" y="169" text-anchor="middle">2 · POST /v1/recommendations</text></g>
+              <g class="seq-message" data-step="3" data-scenarios="known"><path class="seq-arrow" d="M750 265 L1070 265"/><text x="910" y="254" text-anchor="middle">3 · Resolve feature + candidates</text></g>
+              <g class="seq-message" data-step="4" data-scenarios="known"><path class="seq-arrow" d="M1070 315 L750 315"/><text x="910" y="304" text-anchor="middle">4 · candidate rows + context</text></g>
+              <g class="seq-message" data-step="3" data-scenarios="cold"><path class="seq-arrow" d="M750 265 L1070 265"/><text x="910" y="254" text-anchor="middle">3 · User feature không tồn tại</text></g>
+              <g class="seq-message" data-step="4" data-scenarios="cold"><path class="seq-arrow" d="M1070 315 L750 315"/><text x="910" y="304" text-anchor="middle">4 · Chọn category/global fallback</text></g>
+              <g class="seq-message" data-step="5" data-scenarios="known cold"><path class="seq-arrow" d="M750 445 L430 445"/><text x="590" y="434" text-anchor="middle">5 · Top-N + strategy + version</text></g>
+              <g class="seq-message" data-step="6" data-scenarios="known cold"><path class="seq-arrow" d="M430 495 L150 495"/><text x="290" y="484" text-anchor="middle">6 · Render widget</text></g>
+              <g class="seq-message" data-step="7" data-scenarios="feedback"><path class="seq-arrow" d="M430 550 L750 550"/><text x="590" y="539" text-anchor="middle">7 · POST feedback + Idempotency-Key</text></g>
+              <g class="seq-message" data-step="8" data-scenarios="feedback"><path class="seq-arrow" d="M750 600 L1350 600"/><text x="1050" y="589" text-anchor="middle">8 · BEGIN · INSERT ON CONFLICT · COMMIT</text></g>
+              <g class="seq-message" data-step="9" data-scenarios="feedback"><path class="seq-arrow" d="M1350 645 L750 645"/><text x="1050" y="634" text-anchor="middle">9 · committed / duplicate</text></g>
+            </g>
+          </svg>
+          <div class="diagram-card" data-detail-card>
+            <button class="close-card" data-close-card aria-label="Đóng">×</button>
+            <h3 data-detail-title>Sequence đang chờ</h3>
+            <div class="meta" data-detail-meta>chọn kịch bản · bấm chạy</div>
+            <p data-detail-body>Exposure chỉ được gửi sau khi widget thực sự render. Feedback dùng cùng idempotency key khi retry, nên duplicate không được áp dụng lần hai.</p>
+          </div>
+        </div>
+        <div class="source">Nguồn: ARC-02 §2–3 · API-02</div>
+        <div class="slide-no">06</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-7" data-title="Lựa chọn giao thức">
+      <div class="slide-inner top">
+        <div class="eyebrow">Quyết định tích hợp</div>
+        <h2>REST thắng trong MVP vì phù hợp consumer, không phải vì luôn nhanh nhất</h2>
+        <div class="protocol-layout">
+          <div class="protocol selected"><h3>REST / JSON</h3><span class="verdict">Chọn cho MVP</span><ul><li>Tích hợp trực tiếp với Website/BFF</li><li>OpenAPI, debug và demo đơn giản</li><li>Latency đủ xa dưới budget 200 ms</li><li>Đổi lại: synchronous coupling</li></ul></div>
+          <div class="protocol"><h3>gRPC</h3><span class="verdict muted">Không cần lúc này</span><ul><li>Tốt cho internal service throughput cao</li><li>Protobuf contract mạnh</li><li>Web cần adapter hoặc gRPC-web</li><li>Chưa đủ lợi ích để bù tooling</li></ul></div>
+          <div class="protocol"><h3>Message Broker</h3><span class="verdict muted">Target khi scale</span><ul><li>Tốt cho feedback bất đồng bộ</li><li>Giảm coupling theo thời gian</li><li>Không thay request top-N đồng bộ</li><li>Chưa có downstream consumer thật trong MVP</li></ul></div>
+        </div>
+        <div class="source">Nguồn: ARC-03 §1–3 · DEL-06 “Message broker ở đâu?”</div>
+        <div class="slide-no">07</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-8" data-title="Toàn vẹn dữ liệu">
+      <div class="slide-inner top">
+        <div class="eyebrow">Lỗi nửa chừng</div>
+        <h2>Retry chỉ an toàn khi transaction và idempotency cùng bảo vệ dữ liệu</h2>
+        <div class="integrity-flow">
+          <div class="integrity-step"><div class="num">01 · REQUEST</div><h3>Feedback đến API</h3><p>Payload hợp lệ và có <code>Idempotency-Key</code>.</p></div>
+          <div class="integrity-arrow">→</div>
+          <div class="integrity-step warn"><div class="num">02 · ATOMIC WRITE</div><h3>BEGIN → INSERT → COMMIT</h3><p>Unique constraint chặn cùng key; payload khác trả 409.</p></div>
+          <div class="integrity-arrow">→</div>
+          <div class="integrity-step good"><div class="num">03 · RETRY SAFE</div><h3>Inserted hoặc duplicate</h3><p>Client retry cùng key không tạo event logic thứ hai.</p></div>
+        </div>
+        <div class="integrity-note"><strong>Nếu PostgreSQL down:</strong> recommendation vẫn phục vụ bằng artifact local; riêng event endpoint trả 503 rõ ràng. Circuit breaker là target khi có dependency remote, không được trình bày như tính năng MVP đã chạy.</div>
+        <div class="source">Nguồn: ARC-04 §1, §4–6 · ARC-02 §3–4</div>
+        <div class="slide-no">08</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-9" data-title="ML pipeline">
+      <div class="slide-inner top">
+        <div class="eyebrow">ML là một pipeline có gate</div>
+        <h2>K-Means và XGBRanker giải hai tầng khác nhau</h2>
+        <div class="ml-pipeline">
+          <div class="ml-stage"><div class="big">20k</div><h3>User cohort</h3><p>Synerise events, time split, feature cutoff và schema validation.</p></div>
+          <div class="ml-arrow">→</div>
+          <div class="ml-stage"><div class="big">k = 4</div><h3>K-Means</h3><p>Phân đoạn/routing candidate; silhouette 0,423 và cụm nhỏ nhất 7,24%.</p></div>
+          <div class="ml-arrow">→</div>
+          <div class="ml-stage"><div class="big">200</div><h3>Candidate cap</h3><p>Category, cluster, global, recent và similarity sources.</p></div>
+          <div class="ml-arrow">→</div>
+          <div class="ml-stage"><div class="big">69.6k</div><h3>XGBRanker rows</h3><p>28 features, objective <code>rank:ndcg</code>, qid theo user + cutoff.</p></div>
+        </div>
+        <div class="source">Nguồn: release cluster_report.json · manifest.json · ML-01/03</div>
+        <div class="slide-no">09</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-10" data-title="Promotion gate">
+      <div class="slide-inner top">
+        <div class="eyebrow">Release truth</div>
+        <h2>Ranker tốt hơn trong candidate pool, nhưng retrieval chưa đủ để promote</h2>
+        <div class="metric-story">
+          <div class="hero-metric"><div class="value">6,50%</div><div class="label"><strong>Candidate Recall@200</strong> — thấp hơn gate 70%.</div><div class="gate-line"><span>0</span><div class="gate-track"><span></span></div><span>70%</span></div></div>
+          <div>
+            <div class="metric-bars">
+              <div class="metric-row"><div class="metric-name">Validation NDCG@10</div><div class="metric-bar"><span style="width:73.9%"></span></div><div class="metric-value">0,036941</div></div>
+              <div class="metric-row"><div class="metric-name">Test NDCG@10</div><div class="metric-bar"><span style="width:66.9%"></span></div><div class="metric-value">0,033462</div></div>
+              <div class="metric-row"><div class="metric-name">API p95 / 200 ms</div><div class="metric-bar"><span style="width:3.03%"></span></div><div class="metric-value">6,069 ms</div></div>
+            </div>
+            <div class="decision-ribbon"><strong>Quyết định:</strong> production dùng <code>category_popular</code>; XGBRanker vẫn được version như candidate. Một ranker không thể xếp hạng item chưa vào candidate pool.</div>
+          </div>
+        </div>
+        <div class="source">Nguồn: DEL-08 · release metrics.json · performance report</div>
+        <div class="slide-no">10</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-11" data-title="Bằng chứng hiện thực">
+      <div class="slide-inner top">
+        <div class="eyebrow">Không phải JSON hard-code</div>
+        <h2>Release có đủ website, API, artifact và kiểm thử end-to-end</h2>
+        <div class="evidence-strip">
+          <div class="evidence pass"><div class="value">9</div><h3>FastAPI tests</h3><p>Contract, validation, fallback, idempotency và loader production alias.</p></div>
+          <div class="evidence pass"><div class="value">3</div><h3>Web/BFF tests</h3><p>Rendered HTML, proxy route và health integration.</p></div>
+          <div class="evidence pass"><div class="value">1.000</div><h3>ASGI requests</h3><p>p95 6,069 ms trên profile hiệu năng đã công bố.</p></div>
+          <div class="evidence pass"><div class="value">2 + 1</div><h3>Live profiles</h3><p>Hai user thật cho top-N khác nhau; anonymous trả fallback trung thực.</p></div>
+        </div>
+        <p class="lead" style="margin-top:34px"><code>start-demo.ps1</code> → <code>smoke-demo.ps1</code> → <code>stop-demo.ps1</code></p>
+        <div class="source">Nguồn: DEL-08 Evidence matrix · README.md</div>
+        <div class="slide-no">11</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-12" data-title="Demo">
+      <div class="slide-inner top">
+        <div class="eyebrow">Demo path · ảnh giả lập</div>
+        <h2>Ba màn hình đủ chứng minh luồng tích hợp</h2>
+        <div class="mock-grid">
+          <figure class="mock-frame"><div class="mock-bar"><i class="mock-dot"></i><i class="mock-dot"></i><i class="mock-dot"></i><span class="mock-title">localhost:3000</span></div><div class="mock-media" data-image-key="storefront"><div class="placeholder-core"><div class="placeholder-icon"></div><strong>Ảnh giả lập · Storefront</strong><span>Thay bằng screenshot chọn Profile A/B và widget top-N.</span></div></div><figcaption class="mock-caption"><b>1. Website thay đổi theo user</b><span>Hai release profile cho danh sách khác nhau.</span></figcaption></figure>
+          <figure class="mock-frame"><div class="mock-bar"><i class="mock-dot"></i><i class="mock-dot"></i><i class="mock-dot"></i><span class="mock-title">localhost:8000/docs</span></div><div class="mock-media" data-image-key="swagger"><div class="placeholder-core"><div class="placeholder-icon"></div><strong>Ảnh giả lập · Swagger</strong><span>Thay bằng request/response có strategy và model version.</span></div></div><figcaption class="mock-caption"><b>2. Contract chạy thật</b><span>POST recommendations + event endpoints.</span></figcaption></figure>
+          <figure class="mock-frame"><div class="mock-bar"><i class="mock-dot"></i><i class="mock-dot"></i><i class="mock-dot"></i><span class="mock-title">PowerShell</span></div><div class="mock-media" data-image-key="terminal"><div class="placeholder-core"><div class="placeholder-icon"></div><strong>Ảnh giả lập · Smoke</strong><span>Thay bằng terminal PASS cho profiles, fallback và health.</span></div></div><figcaption class="mock-caption"><b>3. Bằng chứng tự động</b><span>Không dựa vào thao tác tay hoặc dữ liệu tĩnh.</span></figcaption></figure>
+        </div>
+        <div class="source">Ảnh placeholder: thay trong RECOBRIDGE_IMAGES ở đầu file HTML · DEL-05/08</div>
+        <div class="slide-no">12</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-13" data-title="Trade-offs">
+      <div class="slide-inner top">
+        <div class="eyebrow">Ưu, nhược và giới hạn</div>
+        <h2>Giải pháp phù hợp ràng buộc — không được gọi là “mô hình tốt nhất”</h2>
+        <div class="tradeoff-layout">
+          <div class="trade-list">
+            <div class="trade-item"><b>Synerise</b><span>Dữ liệu hành vi phong phú; nhưng thiếu exposure/position và giá thực.</span></div>
+            <div class="trade-item"><b>K-Means</b><span>Nhanh, dễ giải thích; nhưng giả định hình học cụm và cần chọn k.</span></div>
+            <div class="trade-item"><b>XGBoost</b><span>Mạnh trên tabular, có feature importance; nhưng phụ thuộc candidate và negative sampling.</span></div>
+            <div class="trade-item"><b>REST</b><span>Dễ tích hợp website; nhưng coupling đồng bộ và cần timeout/fallback.</span></div>
+          </div>
+          <blockquote class="limit-quote">“Không promote một model chỉ vì nó phức tạp hơn” là hành vi MLOps đúng.<small>Offline NDCG không bảo đảm CTR/CVR tăng; clustering metric không chứng minh conversion.</small></blockquote>
+        </div>
+        <div class="source">Nguồn: DEL-06 §2–3 · ML-03 §6</div>
+        <div class="slide-no">13</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-14" data-title="Roadmap">
+      <div class="slide-inner top">
+        <div class="eyebrow">Đường nâng cấp có kiểm soát</div>
+        <h2>Nút thắt tiếp theo nằm ở retrieval, không nằm ở REST hay tốc độ inference</h2>
+        <div class="roadmap">
+          <div class="road-step now"><span class="road-tag">Hiện tại · verified</span><h3>Baseline production</h3><p><code>category_popular</code>, checksum-protected alias, feedback bền vững và p95 đạt gate.</p></div>
+          <div class="road-step"><span class="road-tag">Kế tiếp · retrieval</span><h3>Tăng candidate recall</h3><p>Co-visitation, quota/pre-ranking tốt hơn và ablation theo từng candidate source.</p></div>
+          <div class="road-step"><span class="road-tag">Sau gate · scale</span><h3>Promote và quan sát</h3><p>Canary/A-B, broker + outbox khi có downstream consumer, drift và online business metrics.</p></div>
+        </div>
+        <div class="source">Nguồn: DEL-09 · ML-04 §5–6 · ARC-01 target</div>
+        <div class="slide-no">14</div>
+      </div>
+    </section>
+
+    <section class="slide close-slide" id="slide-15" data-title="Kết luận">
+      <div class="slide-inner">
+        <div class="eyebrow">Kết luận bảo vệ</div>
+        <h2>RecoBridge chứng minh một giải pháp tích hợp trung thực, có failure handling và có đường nâng cấp rõ.</h2>
+        <p class="lead">Giá trị không nằm ở việc gắn nhãn “AI”, mà ở khả năng truy vết từ dữ liệu → quyết định → API → trải nghiệm → feedback.</p>
+        <div class="closing-points"><div><b>Kiến trúc</b>Offline/online tách biệt, REST đúng consumer.</div><div><b>Toàn vẹn</b>Transaction, idempotency và fallback rõ nghĩa.</div><div><b>Hiện thực</b>Release có test, metric, smoke và production alias.</div></div>
+        <div class="source">Q&amp;A · RecoBridge System Integration Defense</div>
+        <div class="slide-no">15</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const deck = document.getElementById('deck');
+    const counter = document.getElementById('deckCounter');
+    const progress = document.getElementById('deckProgress');
+    let currentSlide = 0;
+
+    function goToSlide(index, smooth = true) {
+      currentSlide = Math.max(0, Math.min(slides.length - 1, index));
+      document.body.classList.remove('overview');
+      slides[currentSlide].scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+      updateDeckChrome();
+    }
+    function updateDeckChrome() {
+      counter.textContent = `${String(currentSlide + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+      progress.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
+      document.title = `${slides[currentSlide].dataset.title} — RecoBridge`;
+    }
+    document.getElementById('prevSlide').addEventListener('click', () => goToSlide(currentSlide - 1));
+    document.getElementById('nextSlide').addEventListener('click', () => goToSlide(currentSlide + 1));
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const dark = !document.documentElement.classList.contains('dark');
+      document.documentElement.classList.toggle('dark', dark);
+      localStorage.setItem('recobridge-theme', dark ? 'dark' : 'light');
+    });
+    document.getElementById('fullscreenToggle').addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+    document.getElementById('overviewToggle').addEventListener('click', () => document.body.classList.toggle('overview'));
+    slides.forEach((slide, i) => slide.addEventListener('click', () => {
+      if (document.body.classList.contains('overview')) goToSlide(i, false);
+    }));
+
+    document.addEventListener('keydown', (event) => {
+      const target = event.target;
+      if (target && /INPUT|TEXTAREA|SELECT/.test(target.tagName)) return;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'PageDown' || event.key === ' ') { event.preventDefault(); goToSlide(currentSlide + 1); }
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp' || event.key === 'PageUp') { event.preventDefault(); goToSlide(currentSlide - 1); }
+      if (event.key === 'Home') { event.preventDefault(); goToSlide(0); }
+      if (event.key === 'End') { event.preventDefault(); goToSlide(slides.length - 1); }
+      if (event.key.toLowerCase() === 't') document.getElementById('themeToggle').click();
+      if (event.key.toLowerCase() === 'f') document.getElementById('fullscreenToggle').click();
+      if (event.key.toLowerCase() === 'o') document.getElementById('overviewToggle').click();
+    });
+
+    const slideObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        currentSlide = slides.indexOf(entry.target);
+        updateDeckChrome();
+      });
+    }, { root: deck, threshold: .58 });
+    slides.forEach(slide => slideObserver.observe(slide));
+
+    const ARCH_DETAIL = {
+      shopper: ['Shopper', 'client', 'Khởi tạo request và tạo tín hiệu hành vi. Exposure chỉ hợp lệ sau khi widget được render/visible.'],
+      website: ['Website UI', 'Next.js', 'Hiển thị catalog và widget gợi ý; gửi feedback qua BFF/Event API.'],
+      bff: ['Web BFF', 'security boundary', 'Giữ backend token ở server, chuẩn hóa lỗi và proxy các route /api/* sang FastAPI.'],
+      api: ['Recommendation API', 'FastAPI · stateless', 'Validate contract, resolve user, tạo candidate, rank/fallback, lọc catalog và trả reason/version metadata.'],
+      'event-api': ['Event API', 'idempotent write', 'Ghi exposure/feedback bằng một transaction; retry chỉ dùng lại cùng Idempotency-Key.'],
+      bundle: ['Serving bundle', 'read-only · startup validated', 'Catalog, user features, candidates và production alias được load một lần, kiểm checksum/schema trước readiness.'],
+      postgres: ['PostgreSQL', 'durable source', 'Lưu event bền vững với unique constraint; training batch đọc theo watermark.'],
+      synerise: ['Synerise dataset', 'external source', 'Nguồn Parquet đa sự kiện: page visit, cart, remove và purchase.'],
+      pipeline: ['ETL + feature pipeline', 'offline', 'Chuẩn hóa schema, time split, feature cutoff và tạo feature tables không leakage.'],
+      training: ['Train / evaluate', 'offline ML', 'K-Means hỗ trợ routing; XGBRanker xếp hạng; promotion gate quyết định có phát hành hay fallback.']
+    };
+    const DF_DETAIL = {
+      'df-source': ['Synerise files', 'raw input', 'Dữ liệu gốc chỉ đi vào offline plane, không được quét trong request serving.'],
+      'df-normalize': ['Chuẩn hóa dữ liệu', 'process 1.0', 'Schema validation, dedup và time split tạo đầu vào có thể tái lập.'],
+      'df-events': ['Canonical events', 'data store', 'Lớp sự kiện chuẩn hóa là nguồn cho feature engineering.'],
+      'df-features': ['Feature engineering', 'process 2.0', 'Tạo user/item/context features theo cutoff để tránh dùng tương lai.'],
+      'df-artifacts': ['Model artifacts', 'versioned store', 'Bundle, schema, metrics và checksum tạo contract giữa training và serving.'],
+      'df-user': ['Website', 'external entity', 'Gửi profile/context, nhận top-N và phát exposure/feedback sau tương tác thật.'],
+      'df-bff': ['BFF', 'integration boundary', 'Che backend token và giữ frontend khỏi phụ thuộc trực tiếp contract nội bộ.'],
+      'df-api': ['Recommendation API', 'process 4.0', 'Resolve, retrieve, rank, post-filter và fallback trong latency budget.'],
+      'df-topn': ['Top-N response', 'data in motion', 'Không chỉ có item: còn strategy_used, request_id, model_version và degraded flag.'],
+      'df-log': ['Operational logs', 'durable store', 'Event mới quay lại pipeline trong lần training sau, không online-learn ngay trong request.']
+    };
+    const FLOW_MAPS = {
+      architecture: {
+        recommend: { edges: ['a-e1','a-e2','a-e3','a-e4','a-e5','a-e6'], nodes: ['shopper','website','bff','api','bundle'], title: 'Luồng gợi ý đồng bộ', steps: ['Website gọi BFF bằng HTTPS', 'BFF thêm token và gọi REST API', 'API đọc serving bundle local', 'Top-N trả về cùng strategy và version'] },
+        feedback: { edges: ['a-e7','a-e8','a-e9'], nodes: ['shopper','website','event-api','postgres','training'], title: 'Luồng feedback bền vững', steps: ['Action phát sinh sau render', 'Event API ghi transaction với key', 'PostgreSQL commit hoặc trả duplicate', 'Batch sau đọc theo watermark'] },
+        training: { edges: ['a-e13','a-e11','a-e10','a-e12'], nodes: ['synerise','pipeline','training','bundle'], title: 'Luồng training offline', steps: ['Ingest Synerise Parquet', 'Time split và feature engineering', 'Train/evaluate với promotion gates', 'Publish checksum-protected alias'] }
+      },
+      dataflow: {
+        offline: { edges: ['d-e1','d-e2','d-e3','d-e4'], nodes: ['df-source','df-normalize','df-events','df-features','df-artifacts'], title: 'Offline data plane', steps: ['Raw events', 'Canonical events', 'Feature tables', 'Model artifacts'] },
+        online: { edges: ['d-e5','d-e6','d-e7','d-e8','d-e11'], nodes: ['df-user','df-bff','df-api','df-topn','df-artifacts'], title: 'Online serving plane', steps: ['Website → BFF', 'BFF → API', 'API đọc artifact', 'Top-N trở lại website'] },
+        loop: { edges: ['d-e9','d-e10'], nodes: ['df-user','df-log','df-features'], title: 'Feedback loop', steps: ['Widget render/action', 'Commit event bền vững', 'Batch read theo watermark', 'Feature/model mới sau evaluation'] }
+      }
+    };
+
+    function setDetail(stage, title, meta, body, list = null) {
+      const card = stage.querySelector('[data-detail-card]');
+      card.hidden = false;
+      card.querySelector('[data-detail-title]').textContent = title;
+      card.querySelector('[data-detail-meta]').textContent = meta;
+      const bodyEl = card.querySelector('[data-detail-body]');
+      if (list) bodyEl.innerHTML = `<ol>${list.map(item => `<li>${item}</li>`).join('')}</ol>`;
+      else bodyEl.textContent = body;
+    }
+    document.querySelectorAll('[data-close-card]').forEach(btn => btn.addEventListener('click', event => {
+      event.stopPropagation();
+      btn.closest('[data-detail-card]').hidden = true;
+    }));
+
+    document.querySelectorAll('[data-flow-controls]').forEach(control => {
+      const name = control.dataset.flowControls;
+      const stage = document.querySelector(`[data-diagram="${name}"]`);
+      const map = FLOW_MAPS[name];
+      control.querySelectorAll('[data-flow]').forEach(chip => chip.addEventListener('click', () => {
+        control.querySelectorAll('[data-flow]').forEach(c => c.classList.toggle('on', c === chip));
+        stage.querySelectorAll('.svg-edge,.svg-edge-label,.svg-node').forEach(el => el.classList.remove('lit'));
+        if (chip.dataset.flow === 'all') { stage.classList.remove('flowing'); setDetail(stage, name === 'architecture' ? 'Kiến trúc RecoBridge' : 'Data Flow Level 0', 'toàn bộ hệ thống', 'Chọn một luồng hoặc node để xem diễn giải.'); return; }
+        stage.classList.add('flowing');
+        const flow = map[chip.dataset.flow];
+        flow.edges.forEach(id => stage.querySelector(`#${id}`)?.classList.add('lit'));
+        stage.querySelectorAll('.svg-edge-label').forEach(label => { if (flow.edges.includes(label.dataset.edge)) label.classList.add('lit'); });
+        flow.nodes.forEach(key => stage.querySelector(`[data-key="${key}"]`)?.classList.add('lit'));
+        setDetail(stage, flow.title, 'trace path', '', flow.steps);
+      }));
+    });
+
+    document.querySelectorAll('#architecture-stage .svg-node, #dataflow-stage .svg-node').forEach(node => node.addEventListener('click', () => {
+      const stage = node.closest('.diagram-stage');
+      const detail = stage.id === 'architecture-stage' ? ARCH_DETAIL[node.dataset.key] : DF_DETAIL[node.dataset.key];
+      if (detail) setDetail(stage, detail[0], detail[1], detail[2]);
+    }));
+
+    function setupPanZoom(stage) {
+      const svg = stage.querySelector('svg');
+      const content = svg.querySelector('[data-svg-content]');
+      const zoomLabel = stage.querySelector('[data-zoom-label]');
+      let scale = 1, tx = 0, ty = 0, startX = 0, startY = 0, originX = 0, originY = 0, dragging = false, moved = false;
+      const vb = svg.viewBox.baseVal;
+      function apply() {
+        content.setAttribute('transform', `translate(${tx} ${ty}) scale(${scale})`);
+        zoomLabel.textContent = `${Math.round(scale * 100)}%`;
+      }
+      function reset() { scale = 1; tx = 0; ty = 0; apply(); }
+      stage.querySelector('[data-reset]').addEventListener('click', event => { event.stopPropagation(); reset(); });
+      svg.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        dragging = true; moved = false; startX = event.clientX; startY = event.clientY; originX = tx; originY = ty;
+        svg.setPointerCapture(event.pointerId); svg.classList.add('grabbing');
+      });
+      svg.addEventListener('pointermove', event => {
+        if (!dragging) return;
+        const dxClient = event.clientX - startX, dyClient = event.clientY - startY;
+        if (Math.hypot(dxClient, dyClient) > 5) moved = true;
+        const rect = svg.getBoundingClientRect();
+        tx = originX + dxClient * (vb.width / rect.width);
+        ty = originY + dyClient * (vb.height / rect.height);
+        apply();
+      });
+      function endDrag(event) {
+        if (!dragging) return;
+        dragging = false; svg.classList.remove('grabbing');
+        if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
+        if (moved) svg.addEventListener('click', click => { click.stopPropagation(); click.preventDefault(); }, { capture: true, once: true });
+      }
+      svg.addEventListener('pointerup', endDrag);
+      svg.addEventListener('pointercancel', endDrag);
+      svg.addEventListener('wheel', event => {
+        event.preventDefault();
+        const rect = svg.getBoundingClientRect();
+        const px = (event.clientX - rect.left) * (vb.width / rect.width);
+        const py = (event.clientY - rect.top) * (vb.height / rect.height);
+        const contentX = (px - tx) / scale;
+        const contentY = (py - ty) / scale;
+        const nextScale = Math.max(.55, Math.min(2.6, scale * Math.exp(-event.deltaY * .0012)));
+        tx = px - contentX * nextScale;
+        ty = py - contentY * nextScale;
+        scale = nextScale;
+        apply();
+      }, { passive: false });
+      apply();
+    }
+    document.querySelectorAll('.diagram-stage').forEach(setupPanZoom);
+
+    let sequenceScenario = 'known';
+    let sequenceTimer = null;
+    const sequenceStage = document.getElementById('sequence-stage');
+    const sequenceButtons = Array.from(document.querySelectorAll('[data-sequence]'));
+    function showSequenceScenario(name) {
+      sequenceScenario = name;
+      clearInterval(sequenceTimer);
+      sequenceButtons.forEach(btn => btn.classList.toggle('on', btn.dataset.sequence === name));
+      sequenceStage.querySelectorAll('.seq-message').forEach(msg => {
+        const visible = msg.dataset.scenarios.split(' ').includes(name);
+        msg.toggleAttribute('hidden', !visible);
+        msg.classList.remove('active','done');
+        if (visible) msg.classList.add('done');
+      });
+      sequenceStage.querySelectorAll('[data-scenario-box]').forEach(box => box.toggleAttribute('hidden', box.dataset.scenarioBox !== name || name === 'feedback'));
+      setDetail(sequenceStage, name === 'known' ? 'User có lịch sử' : name === 'cold' ? 'Cold-start trung thực' : 'Feedback idempotent', 'sequence scenario', name === 'known' ? 'API resolve feature/candidate rồi trả top-N có version.' : name === 'cold' ? 'Thiếu feature không gây 500; API trả fallback và degraded=true khi phù hợp.' : 'Feedback được commit đúng một lần và phản hồi tức thời chỉ cập nhật session khi row mới được insert.');
+    }
+    function playSequence() {
+      clearInterval(sequenceTimer);
+      const visible = Array.from(sequenceStage.querySelectorAll('.seq-message')).filter(msg => !msg.hasAttribute('hidden')).sort((a,b) => Number(a.dataset.step) - Number(b.dataset.step));
+      visible.forEach(msg => msg.classList.remove('active','done'));
+      let index = 0;
+      function tick() {
+        visible.forEach((msg, i) => { msg.classList.toggle('active', i === index); msg.classList.toggle('done', i < index); });
+        if (index >= visible.length) { visible.forEach(msg => { msg.classList.remove('active'); msg.classList.add('done'); }); clearInterval(sequenceTimer); return; }
+        index += 1;
+      }
+      tick(); sequenceTimer = setInterval(tick, 820);
+    }
+    sequenceButtons.forEach(btn => btn.addEventListener('click', () => showSequenceScenario(btn.dataset.sequence)));
+    document.getElementById('playSequence').addEventListener('click', playSequence);
+    showSequenceScenario('known');
+
+    document.querySelectorAll('[data-image-key]').forEach(el => {
+      const src = window.RECOBRIDGE_IMAGES?.[el.dataset.imageKey];
+      if (!src) return;
+      el.style.backgroundImage = `url("${src.replace(/"/g, '\\"')}")`;
+      el.classList.add('has-image');
+    });
+
+    updateDeckChrome();
+  </script>
+</body>
+</html>
