@@ -1,4 +1,59 @@
-# RecoBridge
+<p align="center"><img src=".github/assets/recobridge-banner.svg" width="100%" alt="RecoBridge recommendation-system project banner" /></p>
+
+<h1 align="center">RecoBridge</h1>
+<p align="center"><strong>Evidence-led recommendation engineering: data → policy → API → feedback</strong></p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-storefront-149ECA?logo=react&logoColor=white" alt="React storefront" />
+  <img src="https://img.shields.io/badge/stage-governed_demo-6D6399" alt="Governed demo" />
+</p>
+<p align="center">
+  <a href="#system-overview">Overview</a> · <a href="#architecture--feedback-flow">Architecture</a> ·
+  <a href="#run-locally">Run</a> · <a href="docs/07_DELIVERY/08_Release_Evidence.md">Evidence</a> ·
+  <a href="docs/README.md">Documentation</a>
+</p>
+
+## System overview
+
+| | Component | Role |
+| :--: | --- | --- |
+| <img src=".github/assets/icons/data.svg" width="34" height="34" alt="Dataset preparation icon" /> | **Data & preprocessing** | Synerise-derived, governed offline feature and experiment inputs |
+| <img src=".github/assets/icons/experiment.svg" width="34" height="34" alt="Evaluation icon" /> | **Evaluation & promotion** | Baseline comparison, release criteria and model-artifact integrity |
+| <img src=".github/assets/icons/serve.svg" width="34" height="34" alt="Serving icon" /> | **Storefront & feedback** | BFF, FastAPI recommendation endpoint and idempotent feedback |
+
+## Architecture & feedback flow
+
+```mermaid
+flowchart LR
+  U[Shopper] --> WEB[React storefront]
+  WEB --> BFF[Web BFF]
+  BFF --> API[FastAPI recommendation service]
+  API --> MODEL[Checksum-governed release bundle]
+  API --> DB[(PostgreSQL events or local in-memory store)]
+  WEB -->|Likes, cart and exposure via BFF| BFF
+  DS[Synerise source data] --> ETL[Offline preprocessing & experiments]
+  ETL -.->|Governed release decision| MODEL
+```
+
+```mermaid
+flowchart TD
+  S[Offline model candidates] --> G{Fixed promotion criteria met?}
+  G -->|Yes| P[Eligible release strategy]
+  G -->|No| F[Governed fallback baseline]
+  P --> B[Versioned serving bundle]
+  F --> B
+  B --> V[Demo and evidence audit]
+```
+
+> [!IMPORTANT]
+> **Release evidence matters:** The currently governed serving baseline is `category_popular`. The XGBRanker remains a candidate because its fixed Recall@200 promotion criterion was not satisfied. Do not label the more complex algorithm as the production winner. The figures and contracts in [release evidence](docs/07_DELIVERY/08_Release_Evidence.md) must be evaluated at their stated dataset/split and benchmark scope.
+
+> [!WARNING]
+> Demonstration API tokens appear as defaults in example code and local startup paths. They are **not safe as deployed credentials**. Require environment-specific strong secrets and review dataset redistribution rights before exposing a live service.
+
+---
+
+## Technical demo and reproduction
 
 RecoBridge is an end-to-end recommendation demo with a Vinext/React storefront,
 a FastAPI recommendation service, and durable PostgreSQL event ingestion.
